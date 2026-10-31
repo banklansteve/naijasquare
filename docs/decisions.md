@@ -205,13 +205,58 @@ work and must not contradict it. To change a decision, add a NEW entry that supe
 
 ---
 
+## D-028: Auth library is Laravel Fortify
+- Status: Accepted
+- Date: 2026-10-31
+- Context: O-003 left the auth provider open. Sign-up must not hand-roll password hashing or sessions.
+- Decision: Accounts use Laravel Fortify on top of Laravel's session guard and hashed passwords. Fortify's own routes are not registered; this app owns `/join` and, later, sign-in and password reset.
+- Consequences: Password rules stay off until production. Login and forgot-password are the next auth slice, still on Fortify.
+- Supersedes / Superseded by: Resolves O-003
+
+## D-029: Email verification is a short-lived 6-digit code
+- Status: Accepted
+- Date: 2026-10-31
+- Context: People should confirm their email without leaving the sign-up page.
+- Decision: After sign-up, the app emails a 6-digit code that expires in 10 minutes. The person types or pastes it on the same flow. Five wrong tries burns the code. Resend is rate-limited. A link is not required.
+- Consequences: Codes are stored as an HMAC with the app key, not in plain text. Unverified accounts cannot open home or join a community (D-025).
+
+## D-030: Signup address lookup uses postcodes.io
+- Status: Accepted
+- Date: 2026-10-31
+- Context: Sign-up collects a house number and postcode, and must show the person the place it resolves to.
+- Decision: Look up the postcode with postcodes.io. Store the house number, postcode, and composed address privately. The place other people can see is the area and city, such as "Pennywell & South Hylton, Sunderland", or the city alone when there is no finer area. postcodes.io does not return a street name.
+- Consequences: This lookup is the UK launch configuration. Exact address fields stay off Inertia props and off public profile data. D-031 adds the house-level check postcodes.io cannot do.
+
+## D-031: A house number is confirmed with Ideal Postcodes
+- Status: Accepted
+- Date: 2026-10-31
+- Context: postcodes.io can name the area and city, and cannot confirm that a house number exists or return the street.
+- Decision: After postcodes.io resolves the postcode, Ideal Postcodes returns the premises at that postcode. Sign-up continues only when the house number, flat, or building name matches one of them. The full address is shown to the person confirming it, and stored privately. Other people still see only the area and city from postcodes.io.
+- Consequences: When Ideal Postcodes answers, a house number that is not on its list is rejected. When that service does not answer, a matching open-map street is used if one exists. If the map has no numbered house, the private line still uses the street at the postcode point, with the house number the person entered. The area and city are used only when no street is there. Other people still see only the area and city. An optional phone number, when given, must be a UK mobile and is stored as +447….
+
+## D-032: The running app stores data in MySQL
+- Status: Accepted
+- Date: 2026-10-31
+- Context: Local development had been using a SQLite file. A MySQL database named naijasquare now exists for the app.
+- Decision: The application connection is MySQL, database naijasquare. Schema changes still go through versioned migrations. Automated tests keep using SQLite in memory and do not write to this database.
+- Consequences: `.env.example` documents the local MySQL settings. This does not close O-002; the rest of the stack is still open.
+
+## D-033: The first signed-in screen is orientation, not a feed
+- Status: Accepted
+- Date: 2026-10-31
+- Context: D-016 puts the home surface after posts and moderation. A person who has just verified their email still needs a first screen.
+- Decision: That screen welcomes them by first name and city, offers three entry points (communities, a Need, local resources), and lists real communities that match their city and interests. Joining uses the same suggestion rules as sign-up. There is no feed, checklist, or progress bar.
+- Consequences: This does not build Need posts, the resource library, or search. Those stay on their later steps. A community with no members is not shown, and activity is not invented. Ask for help and Explore local resources explain the action until those steps exist.
+
+---
+
 ## Open decisions (resolve before the relevant build step)
 
 | ID | Question | Needed by | Notes |
 |---|---|---|---|
 | O-001 | Product name and domain | Before beta | Working name only for now |
-| O-002 | Tech stack (frontend, backend, database, ORM, testing) | Step 1 | Record as D-023 once chosen; then update `.cursor/rules/40-code-quality.mdc` |
-| O-003 | Auth provider/library | Step 2 | Must support MFA, email verification, rate limiting |
+| O-002 | Tech stack (frontend, backend, database, ORM, testing) | Step 1 | App data is MySQL (D-032). Record the rest as D-023 once chosen; then update `.cursor/rules/40-code-quality.mdc` |
+| O-003 | Auth provider/library | Step 2 | Resolved by D-028 (Laravel Fortify) |
 | O-004 | Hosting and data region | Step 1 | Prefer UK/EU region for UK GDPR simplicity |
 | O-005 | Email delivery provider | Step 2 | Verification, notifications, digests |
 | O-006 | Search approach (DB full-text vs dedicated search) | Step 7 | Start simple unless scale demands more |

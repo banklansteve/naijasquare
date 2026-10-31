@@ -10,21 +10,54 @@
 | carry no names, times, or counts.
 |
 | `communities` stays empty until real public communities exist. The
-| landing page hides that section when the list is empty.
-|
-| Set `founder.name` to the founder's real name. Do not invent one.
+| landing page hides that section when the list is empty. Until then,
+| Explore Communities scrolls to the community step in How it works.
 |
 */
 
 return [
 
-    'headline' => 'Practical help, from people like you.',
+    'headline' => 'Your people. Your city. Real help.',
 
-    'emphasis' => 'from people like you.',
+    'emphasis' => 'Real help.',
 
-    'subline' => 'Moving, job-hunting, finding a GP, sorting paperwork: get real answers from Nigerians who\'ve been where you are, and help others when you can.',
+    'subline' => 'Moving, job-hunting, finding a GP, sorting paperwork: We connect you to verified people, trusted resources and local support - wherever you are.',
+
+    'banner' => [
+        'primary' => 'Create A Free Account',
+        'secondary' => 'Explore Communities',
+    ],
+
+    'values' => [
+        'heading' => 'Then it feels like yours',
+        'subline' => 'People at your stage of life, help when you ask, and a space that stays respectful.',
+        'points' => [
+            [
+                'icon' => 'match',
+                'title' => 'Communities that match your life.',
+                'body' => 'Connect with people who share your values, interests and stage of life.',
+            ],
+            [
+                'icon' => 'help',
+                'title' => 'Real help when you need it',
+                'body' => 'Ask questions, get advice and find practical support from people who understand.',
+            ],
+            [
+                'icon' => 'trust',
+                'title' => 'People & places you can trust',
+                'body' => 'Verified members and community moderation keep our space safe and respectful.',
+            ],
+        ],
+    ],
 
     'closer' => 'Ask, offer, and meet up in person.',
+
+    'close' => [
+        'line' => 'Join the trusted space for Nigerians in the UK.',
+        'cta' => 'Create Free Account',
+        'account' => 'Already have an account?',
+        'signIn' => 'Sign in',
+    ],
 
     'assurance' => 'Free. Takes a minute. You choose which communities to join.',
 
@@ -35,8 +68,8 @@ return [
     ],
 
     'meta' => [
-        'title' => 'Practical help, from people like you.',
-        'description' => 'Moving, job-hunting, finding a GP, sorting paperwork: get real answers from Nigerians who\'ve been where you are, and help others when you can. Ask, offer, and meet up in person.',
+        'title' => 'Your people. Your city. Real help.',
+        'description' => 'Moving, job-hunting, finding a GP, sorting paperwork: We connect you to verified people, trusted resources and local support - wherever you are.',
         'image' => '/images/og-card.png',
     ],
 
@@ -101,7 +134,6 @@ return [
             ],
         ],
         'cta' => 'Create your free account',
-        'note' => 'Free. Takes a minute. You choose which communities to join.',
     ],
 
     /*
@@ -110,78 +142,115 @@ return [
     */
     'communities' => [],
 
-    'steps' => [
-        [
-            'icon' => 'user',
-            'title' => 'Create your account',
-            'body' => 'A minute to open it. You verify your email, then choose the name people will see.',
+    'how' => [
+        'heading' => 'Get started in 3 simple steps',
+        'subline' => 'A free account, the right communities, then people who can help.',
+        'steps' => [
+            [
+                'title' => 'Join free',
+                'body' => 'Create your profile in minutes. Choose what interests you, and what others see.',
+                'screen' => [
+                    'type' => 'profile',
+                    'label' => 'Your profile',
+                    'nameLabel' => 'Name you show',
+                    'nameValue' => 'You choose',
+                    'interests' => [
+                        ['name' => 'Housing', 'selected' => true],
+                        ['name' => 'Work', 'selected' => true],
+                        ['name' => 'Settling in', 'selected' => false],
+                    ],
+                    'privacy' => 'Show others',
+                    'detail' => 'Area only',
+                ],
+            ],
+            [
+                'title' => 'Find your communities',
+                'body' => 'Search for communities, services or resources. Join an open one, or request to join.',
+                'screen' => [
+                    'type' => 'communities',
+                    'query' => 'Communities, services, resources',
+                    'groups' => [
+                        ['name' => 'Nigerians in Leeds', 'access' => 'Join', 'open' => true],
+                        ['name' => 'New arrivals in Leeds', 'access' => 'Request to join', 'open' => false],
+                    ],
+                ],
+            ],
+            [
+                'title' => 'Connect and grow',
+                'body' => 'Build real relationships and get the support you need.',
+                'screen' => [
+                    'type' => 'thread',
+                    'tag' => 'Support',
+                    'line' => 'Which GP surgeries are taking new patients?',
+                    'replyLabel' => 'Reply',
+                    'reply' => 'Ours is. I can walk you through how I registered.',
+                    'status' => 'Connected',
+                ],
+            ],
         ],
-        [
-            'icon' => 'users',
-            'title' => 'Join what fits you',
-            'body' => 'Pick communities for your city, your work, or the stage of life you are in.',
-        ],
-        [
-            'icon' => 'pin',
-            'title' => 'Ask, offer, or show up',
-            'body' => 'Post a need, offer help, or come to an event. The conversation stays on the post.',
-        ],
+        'cta' => 'Create your free account',
+        'note' => 'It\'s Free, and takes just about a minute to join.',
     ],
-
-    'trust_intro' => 'A few promises, written so you can read them before you join.',
 
     'trust' => [
-        [
-            'icon' => 'verified',
-            'title' => 'Real people only',
-            'body' => 'Everyone verifies their email, including people who arrive with an invite.',
-        ],
-        [
-            'icon' => 'users',
-            'title' => 'Communities choose',
-            'body' => 'Each community decides who can join. Some are open. Others approve each new member.',
-        ],
-        [
-            'icon' => 'shield',
-            'title' => 'Scams are called out',
-            'body' => 'Housing, job and immigration posts carry scam warnings.',
-        ],
-        [
-            'icon' => 'lock',
-            'title' => 'Your details stay yours',
-            'body' => 'We never sell your data. You choose your name and how precisely your location shows.',
+        'heading' => 'Built so you can trust what you find.',
+        'subline' => 'Four clear promises.',
+        'promises' => [
+            [
+                'title' => 'Scams get called out',
+                'body' => 'Housing, job and immigration posts carry a clear warning, and anyone can report a post in two taps.',
+                'notice' => [
+                    'line' => 'Room available in Headingley. Quiet street, close to the shops.',
+                    'meta' => 'Housing · Leeds',
+                    'status' => 'Reported',
+                ],
+            ],
+            [
+                'title' => 'Real people only',
+                'body' => 'Every member confirms their email before they can post or join, including people who arrive with an invite.',
+                'badge' => 'Email verified',
+            ],
+            [
+                'title' => 'Communities choose',
+                'body' => 'Each community decides who joins and keeps its own guidelines.',
+                'modes' => ['Open', 'Request to join', 'Invite only'],
+            ],
+            [
+                'title' => 'Your details stay yours',
+                'body' => 'We never sell your data. You control what people see.',
+                'privacy' => [
+                    'label' => 'Shown as',
+                    'level' => 'City level',
+                    'place' => 'Cardiff',
+                ],
+            ],
         ],
     ],
 
-    'founder' => [
-        'name' => null,
-        'paragraphs' => [
-            'I kept watching useful help vanish inside group chats. Someone would explain a process, warn people about a scam, or point to a person who could actually help, and a week later it was gone.',
-            'NaijaSquare is the noticeboard I wanted instead. A place that stays. You can see who asked you to come. Each community decides who walks in.',
-            'It is for getting things sorted with people who already understand the shape of your week, then meeting them in real life when you want to.',
-        ],
-    ],
-
-    'faqs' => [
-        [
-            'question' => 'Who is it for?',
-            'answer' => 'Nigerians living away from home, aged 18 and over. You join the communities that fit your city, your work, or the stage of life you are in.',
-        ],
-        [
-            'question' => 'Is it free?',
-            'answer' => 'Yes. Creating an account is free, and the platform never takes a payment between members.',
-        ],
-        [
-            'question' => 'Who can see my details?',
-            'answer' => 'You choose the name people see. Your location stays coarse. What you post is visible in the community you posted it to.',
-        ],
-        [
-            'question' => 'How do you deal with scams?',
-            'answer' => 'Housing, job and immigration posts carry a warning. Anyone can report a post, and we do not handle money between members.',
-        ],
-        [
-            'question' => 'Do I have to leave my WhatsApp groups?',
-            'answer' => 'No. Keep the groups you already use. When something here is worth sharing, you can send the link straight into WhatsApp.',
+    'faq' => [
+        'heading' => 'Good Questions. Straight Answers.',
+        'subline' => 'Everything you need to know before joining.',
+        'items' => [
+            [
+                'question' => 'Who is it for?',
+                'answer' => 'Nigerians living away from home, aged 18 and over. You join the communities that fit your city, your work, or the stage of life you are in.',
+            ],
+            [
+                'question' => 'Is it free?',
+                'answer' => 'Yes. Creating an account is free, and the platform never takes a payment between members.',
+            ],
+            [
+                'question' => 'Who can see my details?',
+                'answer' => 'You choose the name people see. Your location stays coarse. What you post is visible in the community you posted it to.',
+            ],
+            [
+                'question' => 'How do you deal with scams?',
+                'answer' => 'Housing, job and immigration posts carry a warning. Anyone can report a post, and we do not handle money between members.',
+            ],
+            [
+                'question' => 'Do I have to leave my WhatsApp groups?',
+                'answer' => 'No. Keep the groups you already use. When something here is worth sharing, you can send the link straight into WhatsApp.',
+            ],
         ],
     ],
 

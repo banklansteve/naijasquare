@@ -3,9 +3,8 @@
 @source '../../storage/framework/views/*.php';
 
 @theme {
-    --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif,
-        'Apple Color Emoji', 'Segoe UI Emoji';
-    --font-serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+    --font-sans: 'Nunito Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --font-heading: 'Nunito Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 
     /* Primary: dusk lagoon. Warm teal-cyan. Use 700 for filled buttons so white text passes WCAG AA. */
     --color-lagoon-50: #f0f7f8;
@@ -30,6 +29,16 @@
     --color-moss-700: #344b40;
     --color-moss-800: #25362e;
     --color-moss-900: #18241f;
+
+    /* Warm clay and honey. Lagoon and moss are cool, so warnings and the privacy note use these. */
+    --color-clay-50: #fdf8f5;
+    --color-clay-100: #f8ebe4;
+    --color-clay-200: #f0d2c4;
+    --color-clay-700: #8a4630;
+    --color-clay-800: #5c2e1c;
+    --color-honey-50: #fbf7ec;
+    --color-honey-100: #f6edd4;
+    --color-honey-200: #ead9a6;
 
     --color-paper: #f5f7f7;
     --color-ink: #1a2c2e;
@@ -69,6 +78,15 @@
     body {
         @apply bg-paper font-sans text-ink antialiased;
         overscroll-behavior-y: none;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        @apply font-heading;
     }
 
     :focus-visible {

@@ -17,7 +17,7 @@
                 {{ card.kind }}
             </span>
         </header>
-        <p class="mt-2 font-serif text-[15px] leading-snug text-ink lg:mt-3 lg:text-[16px]">
+        <p class="mt-2 text-[15px] font-normal leading-snug text-ink lg:mt-3 lg:text-[16px]">
             “{{ card.line }}”
         </p>
         <p class="mt-4 hidden border-t border-[#ebe4d6] pt-3 text-xs font-medium tracking-wide text-ink-soft lg:block">

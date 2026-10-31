@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureEmailIsVerified;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -17,9 +18,19 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleInertiaRequests::class,
         ]);
 
-        // Signed-in members never see the landing page. "/home" is the
-        // "Relevant to you" surface, built in D-016 step 7.
-        $middleware->redirectUsersTo('/home');
+        $middleware->alias([
+            'verified.email' => EnsureEmailIsVerified::class,
+        ]);
+
+        // Signed-in members never see the landing page. "/home" is a
+        // holding page until the Relevant-to-you surface (D-016 step 7).
+        $middleware->redirectUsersTo(function (Request $request) {
+            if ($request->user()?->email_verified_at === null) {
+                return route('signup.verify');
+            }
+
+            return route('home');
+        });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

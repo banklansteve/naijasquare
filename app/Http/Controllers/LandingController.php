@@ -20,11 +20,6 @@ class LandingController extends Controller
         return $this->render(invite: config('landing.preview_invite'));
     }
 
-    public function join(): Response
-    {
-        return $this->pending('join');
-    }
-
     public function signIn(): Response
     {
         return $this->pending('sign-in');
@@ -75,19 +70,33 @@ class LandingController extends Controller
             'emphasis' => config('landing.emphasis'),
             'subline' => config('landing.subline'),
             'closer' => config('landing.closer'),
+            'banner' => $this->banner(),
             'assurance' => config('landing.assurance'),
             'aside' => config('landing.aside'),
             'invite' => $invite,
             'board' => config('landing.board'),
+            'values' => config('landing.values'),
             'doHere' => $this->doHere(),
             'communities' => config('landing.communities'),
-            'steps' => config('landing.steps'),
-            'trustIntro' => config('landing.trust_intro'),
+            'how' => $this->how(),
             'trust' => config('landing.trust'),
-            'founder' => config('landing.founder'),
-            'faqs' => config('landing.faqs'),
+            'faq' => config('landing.faq'),
+            'close' => $this->close(),
             'footer' => config('landing.footer'),
         ])->withViewData(['meta' => $meta]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function banner(): array
+    {
+        /** @var array<string, mixed> $banner */
+        $banner = config('landing.banner');
+
+        $banner['primaryHref'] = route(SignupRoute::NAME);
+
+        return $banner;
     }
 
     /**
@@ -97,6 +106,33 @@ class LandingController extends Controller
     {
         /** @var array<string, mixed> $section */
         $section = config('landing.do_here');
+
+        $section['signupHref'] = route(SignupRoute::NAME);
+
+        return $section;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function close(): array
+    {
+        /** @var array<string, mixed> $close */
+        $close = config('landing.close');
+
+        $close['ctaHref'] = route(SignupRoute::NAME);
+        $close['signInHref'] = route('login');
+
+        return $close;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function how(): array
+    {
+        /** @var array<string, mixed> $section */
+        $section = config('landing.how');
 
         $section['signupHref'] = route(SignupRoute::NAME);
 
