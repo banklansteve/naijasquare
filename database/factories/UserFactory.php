@@ -28,6 +28,7 @@ class UserFactory extends Factory
         $last = fake()->lastName();
 
         return [
+            'uid' => Str::upper(Str::random(8)),
             'name' => $first.' '.$last,
             'first_name' => $first,
             'last_name' => $last,

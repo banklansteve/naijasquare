@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Community\JoinCommunity;
 use App\Http\Requests\JoinCommunitiesRequest;
+use App\Models\Community;
 use App\Signup\CommunitySuggestions;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -25,8 +27,11 @@ class SuggestedCommunitiesController extends Controller
         ]);
     }
 
-    public function store(JoinCommunitiesRequest $request, CommunitySuggestions $suggestions): RedirectResponse
-    {
+    public function store(
+        JoinCommunitiesRequest $request,
+        CommunitySuggestions $suggestions,
+        JoinCommunity $join,
+    ): RedirectResponse {
         $offered = $suggestions->idsFor($request->user());
         /** @var list<int> $chosen */
         $chosen = array_map('intval', $request->validated('communities'));
@@ -37,7 +42,15 @@ class SuggestedCommunitiesController extends Controller
             ]);
         }
 
-        $request->user()->communities()->syncWithoutDetaching($chosen);
+        foreach ($chosen as $communityId) {
+            $community = Community::query()->findOrFail($communityId);
+
+            if ($community->access_mode === Community::ACCESS_INVITE_ONLY) {
+                continue;
+            }
+
+            $join->join($request->user(), $community);
+        }
 
         return redirect()->route('home');
     }

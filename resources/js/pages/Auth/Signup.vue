@@ -188,20 +188,15 @@
                         </button>
                     </li>
                 </ul>
-                <label class="flex cursor-pointer items-start gap-3">
-                    <input
-                        v-model="form.terms"
-                        type="checkbox"
-                        class="mt-0.5 size-5 shrink-0 accent-lagoon-700"
-                        @change="localError = ''"
-                    >
-                    <span class="text-sm leading-relaxed text-ink">
-                        I'm 18 or over, and I agree to the
-                        <Link href="/guidelines" class="font-semibold text-lagoon-800 underline decoration-lagoon-200 underline-offset-4">Community Guidelines</Link>
-                        and
-                        <Link href="/privacy" class="font-semibold text-lagoon-800 underline decoration-lagoon-200 underline-offset-4">Privacy notice</Link>.
-                    </span>
-                </label>
+                <UiCheckbox
+                    v-model="form.terms"
+                    @update:model-value="localError = ''"
+                >
+                    I'm 18 or over, and I agree to the
+                    <Link href="/guidelines" class="font-semibold text-lagoon-800 underline decoration-lagoon-200 underline-offset-4">Community Guidelines</Link>
+                    and
+                    <Link href="/privacy" class="font-semibold text-lagoon-800 underline decoration-lagoon-200 underline-offset-4">Privacy notice</Link>.
+                </UiCheckbox>
                 <button
                     type="submit"
                     class="inline-flex h-12 w-full items-center justify-center rounded-full bg-lagoon-700 px-6 text-base font-bold text-white transition-[background-color] duration-500 ease-out hover:bg-lagoon-800 disabled:opacity-60"
@@ -273,6 +268,7 @@ import { computed, ref } from 'vue';
 
 import AuthField from '@/components/auth/AuthField.vue';
 import AuthFrame from '@/components/auth/AuthFrame.vue';
+import UiCheckbox from '@/components/ui/UiCheckbox.vue';
 
 const props = defineProps<{
     lifeStages: Record<string, string>;

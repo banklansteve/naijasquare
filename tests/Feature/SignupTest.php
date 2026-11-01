@@ -444,7 +444,7 @@ class SignupTest extends TestCase
     public function test_only_live_matching_communities_are_offered_and_joining_is_optional(): void
     {
         $host = User::factory()->create();
-        $match = Community::factory()->create([
+        $match = Community::factory()->open()->create([
             'name' => 'Nigerians in Sunderland',
             'description' => 'Practical help around the city.',
             'city' => 'Sunderland',

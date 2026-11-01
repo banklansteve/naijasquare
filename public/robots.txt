@@ -1,2 +1,19 @@
 User-agent: *
-Disallow:
+Allow: /
+Allow: /explore
+Allow: /communities/
+Disallow: /home
+Disallow: /join
+Disallow: /sign-in
+Disallow: /sign-out
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /profile
+Disallow: /needs
+Disallow: /resources
+Disallow: /communities/create
+Disallow: /*/settings
+Disallow: /invitations/
+Disallow: /api/
+
+Sitemap: /sitemap.xml

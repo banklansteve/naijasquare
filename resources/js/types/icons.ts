@@ -12,4 +12,7 @@ export type IconName =
     | 'help'
     | 'book'
     | 'info'
-    | 'place-community';
+    | 'place-community'
+    | 'menu'
+    | 'close';
+

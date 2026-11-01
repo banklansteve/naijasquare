@@ -242,7 +242,7 @@ class LandingPageTest extends TestCase
         $this->actingAs($user)->get('/sign-in')->assertRedirect('/home');
     }
 
-    public function test_join_shows_the_signup_form_and_sign_in_stays_a_holding_screen(): void
+    public function test_join_shows_the_signup_form_and_sign_in_shows_the_login_form(): void
     {
         $this->get('/join')
             ->assertOk()
@@ -257,10 +257,7 @@ class LandingPageTest extends TestCase
         $this->get('/sign-in')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('Account/Pending')
-                ->where('intent', 'sign-in')
-                ->has('title')
-                ->has('body')
+                ->component('Auth/Login')
             );
 
         $signup = file_get_contents(resource_path('js/pages/Auth/Signup.vue'));
@@ -274,8 +271,9 @@ class LandingPageTest extends TestCase
         $this->assertStringNotContainsString("kicker: 'Your photo'", $signup);
         $this->assertStringNotContainsString("kicker: 'Agreement'", $signup);
         $this->assertMatchesRegularExpression('/Edit\s*<\/button>/', $signup);
-        $this->assertStringContainsString('type="checkbox"', $signup);
+        $this->assertStringContainsString('UiCheckbox', $signup);
         $this->assertStringContainsString('I agree to the', $signup);
+        $this->assertStringContainsString('type="checkbox"', (string) file_get_contents(resource_path('js/components/ui/UiCheckbox.vue')));
         $this->assertMatchesRegularExpression('/Previous\s*<\/button>/', $signup);
     }
 

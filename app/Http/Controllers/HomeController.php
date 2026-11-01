@@ -16,14 +16,7 @@ class HomeController extends Controller
         return Inertia::render('Home', [
             'firstName' => $user->first_name,
             'city' => $user->city,
-            'communities' => $suggestions->for($user)
-                ->map(fn (array $community): array => [
-                    'id' => $community['id'],
-                    'name' => $community['name'],
-                    'description' => $community['description'],
-                    'members' => $community['members'],
-                ])
-                ->values(),
+            'communities' => $suggestions->for($user)->values(),
         ]);
     }
 }

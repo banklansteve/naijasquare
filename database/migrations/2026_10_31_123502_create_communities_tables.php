@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('communities', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('description');
+            $table->text('description');
             $table->string('city')->index();
             $table->json('interest_keys')->nullable();
             $table->boolean('listed')->default(true);

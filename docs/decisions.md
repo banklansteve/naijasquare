@@ -210,7 +210,7 @@ work and must not contradict it. To change a decision, add a NEW entry that supe
 - Date: 2026-10-31
 - Context: O-003 left the auth provider open. Sign-up must not hand-roll password hashing or sessions.
 - Decision: Accounts use Laravel Fortify on top of Laravel's session guard and hashed passwords. Fortify's own routes are not registered; this app owns `/join` and, later, sign-in and password reset.
-- Consequences: Password rules stay off until production. Login and forgot-password are the next auth slice, still on Fortify.
+- Consequences: Password rules stay off until production. Login and forgot-password use the same Fortify session and hashing layer, on app-owned routes (`/sign-in`, `/forgot-password`, `/reset-password`).
 - Supersedes / Superseded by: Resolves O-003
 
 ## D-029: Email verification is a short-lived 6-digit code
@@ -248,6 +248,27 @@ work and must not contradict it. To change a decision, add a NEW entry that supe
 - Decision: That screen welcomes them by first name and city, offers three entry points (communities, a Need, local resources), and lists real communities that match their city and interests. Joining uses the same suggestion rules as sign-up. There is no feed, checklist, or progress bar.
 - Consequences: This does not build Need posts, the resource library, or search. Those stay on their later steps. A community with no members is not shown, and activity is not invented. Ask for help and Explore local resources explain the action until those steps exist.
 
+## D-034: Community access modes and join notes
+- Status: Accepted
+- Date: 2026-11-01
+- Context: D-024 fixed "request to join, approved by a community admin". O-012 still needed the full set of modes and whether a join request carries a note.
+- Decision: Communities have three access modes: `open` (anyone verified may join), `request` (default; optional short note for admins; admins approve or decline), and `invite_only` (no open join; membership via invite paths). UI may say Creator/Admin; roles and permissions remain Owner/Moderator/Member (D-017, D-018). Community tags and guideline templates live in `config/community.php`. Admin invites use email plus a simple in-app notification row.
+- Consequences: O-012 is resolved. D-016 step 4 is pulled forward ahead of the platform Admin skeleton (step 3); community-scoped permissions are enough for this slice. Health metrics, pins, digests, and the report queue are honest UI stubs until steps 5–8. Cover image scanning stays on O-007.
+
+## D-035: Public discoverability for listed open/request communities
+- Status: Accepted
+- Date: 2026-11-01
+- Context: Search engines cannot rank login-walled community pages. Diaspora members search for place- and topic-based groups (e.g. professionals in Leeds).
+- Decision: Listed communities with access mode `open` or `request` that have at least one member are publicly crawlable: teaser page at `/communities/{slug}`, explore hub at `/explore`, place pages at `/explore/{place}`, tag pages at `/explore/tag/{tag}`, plus `/sitemap.xml` and robots allowances. Invite-only and unlisted communities stay private (404 to guests, omitted from the sitemap). Public pages expose teaser fields only (name, location, description, tags, member count, cover, join CTA)—not member lists, posts, or admin tools. Slug URLs remain the public identifier; no separate public numeric ID.
+- Consequences: Landing and marketing can deep-link into explore and community teasers. Join and posting still require a verified account (D-020, D-024, D-025). Full Inertia SSR is deferred; public pages use Blade meta via `withViewData` like the landing page.
+
+## D-036: Need/Offer posting in communities
+- Status: Accepted
+- Date: 2026-11-01
+- Context: D-016 step 5; members need a way to ask for and offer help inside a community without DMs (D-009).
+- Decision: First post types are Need and Offer only. Categories, urgencies, default expiry windows, and report reasons live in `config/posts.php`. Creating a Need/Offer requires verified membership, accepted guidelines when required, `post.create`, and the community `who_can_post` setting (`members` or `admins`). All members with `post.reply` may reply in the thread. Authors can mark their own Need/Offer resolved. Reports create pending `reports` rows (no full moderation queue UI yet). Housing, jobs, and immigration categories show a payment-risk safety notice. `who_can_post` is set at community create and editable in settings.
+- Consequences: Discussion/Event/Intro posts stay later (D-016). Image uploads stay on O-007. Full Trust & Safety queue remains step 6.
+
 ---
 
 ## Open decisions (resolve before the relevant build step)
@@ -265,4 +286,4 @@ work and must not contradict it. To change a decision, add a NEW entry that supe
 | O-009 | Founding-host programme details | Before beta | Who, which clusters, what pre-seeded content |
 | O-010 | Moderation staffing plan | Before beta | Who handles reports and how fast |
 | O-011 | Analytics approach (first-party, privacy-respecting) | Step 8 | Needed for D-013 metrics |
-| O-012 | Community access modes | Step 4 | D-024 fixes "request to join, approved by a community admin". Still to decide: which other modes exist (e.g. open join, invite-only, hidden from search), whether a valid invite skips approval, and whether the request asks a short question for the admin to see |
+| O-012 | Community access modes | Step 4 | Resolved by D-034 (`open` / `request` / `invite_only`; optional join note) |

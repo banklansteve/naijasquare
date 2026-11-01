@@ -7,26 +7,19 @@
         </p>
 
         <form class="mt-8 space-y-3" @submit.prevent="join">
-            <label
+            <UiCheckbox
                 v-for="community in communities"
                 :key="community.id"
-                class="flex cursor-pointer gap-4 rounded-[1.5rem] border bg-white p-4 transition-[border-color,box-shadow] duration-500 ease-out"
-                :class="selected.includes(community.id) ? 'border-lagoon-700 shadow-card ring-4 ring-lagoon-100' : 'border-line'"
+                v-model="selected"
+                :value="community.id"
+                card
             >
-                <input
-                    v-model="selected"
-                    type="checkbox"
-                    class="mt-1 size-5 accent-lagoon-700"
-                    :value="community.id"
-                >
-                <span class="min-w-0">
-                    <span class="block text-base font-bold text-ink">{{ community.name }}</span>
-                    <span class="mt-1 block text-sm font-semibold text-lagoon-800">
-                        {{ community.members }} {{ community.members === 1 ? 'member' : 'members' }}
-                    </span>
-                    <span class="mt-2 block text-sm leading-relaxed text-ink-soft">{{ community.description }}</span>
+                <span class="block text-base font-bold text-ink">{{ community.name }}</span>
+                <span class="mt-1 block text-sm font-semibold text-lagoon-800">
+                    {{ community.members }} {{ community.members === 1 ? 'member' : 'members' }}
                 </span>
-            </label>
+                <span class="mt-2 block text-sm leading-relaxed text-ink-soft">{{ community.description }}</span>
+            </UiCheckbox>
 
             <p v-if="form.errors.communities" class="text-sm text-clay-800">{{ form.errors.communities }}</p>
 
@@ -52,6 +45,7 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
 import AuthFrame from '@/components/auth/AuthFrame.vue';
+import UiCheckbox from '@/components/ui/UiCheckbox.vue';
 
 defineProps<{
     communities: Array<{

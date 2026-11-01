@@ -20,11 +20,6 @@ class LandingController extends Controller
         return $this->render(invite: config('landing.preview_invite'));
     }
 
-    public function signIn(): Response
-    {
-        return $this->pending('sign-in');
-    }
-
     public function page(string $page): Response
     {
         $copy = config("landing.pages.{$page}");
@@ -34,19 +29,6 @@ class LandingController extends Controller
         return Inertia::render('Info', [
             'title' => $copy['title'],
             'paragraphs' => $copy['paragraphs'],
-        ]);
-    }
-
-    private function pending(string $intent): Response
-    {
-        $copy = $intent === 'join'
-            ? config('landing.pending.join')
-            : config('landing.pending.sign_in');
-
-        return Inertia::render('Account/Pending', [
-            'intent' => $intent,
-            'title' => $copy['title'],
-            'body' => $copy['body'],
         ]);
     }
 

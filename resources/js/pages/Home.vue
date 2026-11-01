@@ -19,8 +19,8 @@
                     Start here
                 </h2>
                 <div class="mt-4 grid gap-3 sm:grid-cols-3 sm:gap-4">
-                    <a
-                        href="#communities"
+                    <Link
+                        href="/communities"
                         class="group flex min-h-44 flex-col rounded-[1.35rem] border border-gray-200/80 bg-white p-5 shadow-[0_1px_2px_rgb(15_23_42/0.04),0_12px_28px_-18px_rgb(15_23_42/0.18)] transition duration-500 ease-out hover:shadow-[0_2px_8px_rgb(15_23_42/0.05),0_18px_36px_-18px_rgb(15_23_42/0.22)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lagoon-700 sm:p-6"
                     >
                         <span class="grid size-14 place-items-center rounded-full bg-lagoon-100 text-lagoon-700">
@@ -28,7 +28,7 @@
                         </span>
                         <span class="mt-5 font-heading text-base font-bold tracking-tight text-gray-800">Find your communities</span>
                         <span class="mt-2 text-sm font-normal leading-6 text-gray-600">Join groups that match your location and interests.</span>
-                    </a>
+                    </Link>
                     <Link
                         href="/needs"
                         class="group flex min-h-44 flex-col rounded-[1.35rem] border border-gray-200/80 bg-white p-5 shadow-[0_1px_2px_rgb(15_23_42/0.04),0_12px_28px_-18px_rgb(15_23_42/0.18)] transition duration-500 ease-out hover:shadow-[0_2px_8px_rgb(15_23_42/0.05),0_18px_36px_-18px_rgb(15_23_42/0.22)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lagoon-700 sm:p-6"
@@ -53,9 +53,15 @@
             </section>
 
             <section id="communities" class="mt-12 scroll-mt-24" aria-labelledby="communities-for-you">
-                <h2 id="communities-for-you" class="text-xl font-semibold tracking-wide text-gray-700">
-                    Communities for you
-                </h2>
+                <div class="flex flex-wrap items-end justify-between gap-3">
+                    <h2 id="communities-for-you" class="text-xl font-semibold tracking-wide text-gray-700">
+                        Communities for you
+                    </h2>
+                    <div class="flex flex-wrap gap-3 text-sm font-semibold">
+                        <Link href="/communities" class="text-lagoon-800">Browse</Link>
+                        <Link href="/communities/create" class="text-lagoon-800">Create</Link>
+                    </div>
+                </div>
 
                 <ul
                     v-if="communities.length"
@@ -66,22 +72,15 @@
                         :key="community.id"
                         class="overflow-hidden rounded-[1.35rem] border border-gray-200/80 bg-white shadow-[0_1px_2px_rgb(15_23_42/0.04),0_12px_28px_-18px_rgb(15_23_42/0.18)]"
                     >
-                        <div class="relative">
-                            <div
-                                class="h-28 bg-linear-to-br sm:h-32"
-                                :class="coverTone(community.id)"
-                            >
-                                <div class="absolute inset-0 opacity-[0.18]">
-                                    <svg class="size-full" viewBox="0 0 320 140" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-                                        <path fill="currentColor" class="text-white" d="M0 96c28-18 52-18 80 0s52 18 80 0 52-18 80 0 52 18 80 0v44H0Z" />
-                                        <path fill="currentColor" class="text-white" d="M40 70h18v26H40Zm28-18h22v44H68Zm30 10h16v34H98Zm70-16h20v50h-20Zm28 12h18v38h-18Z" />
-                                    </svg>
-                                </div>
-                            </div>
+                        <CommunityCoverMedia
+                            :name="community.name"
+                            :cover-url="community.cover_url"
+                            :tag-keys="community.tag_keys"
+                        >
                             <span class="absolute -bottom-5 left-4 grid size-11 place-items-center rounded-full bg-gray-800 text-white shadow-md ring-4 ring-white">
                                 <BaseIcon name="place-community" class="size-5" />
                             </span>
-                        </div>
+                        </CommunityCoverMedia>
 
                         <div class="flex flex-1 flex-col px-4 pt-8 pb-4 sm:px-5 sm:pb-5">
                             <h3 class="font-heading text-base font-bold tracking-tight text-gray-800">{{ community.name }}</h3>
@@ -90,14 +89,12 @@
                                 <BaseIcon name="users" class="size-3.5 shrink-0" />
                                 <span>{{ membersLabel(community.members) }}</span>
                             </p>
-                            <button
-                                type="button"
-                                class="mt-4 inline-flex h-11 w-full items-center justify-center rounded-full border border-[#e6dfd4] bg-[#f7f3ec] font-heading text-sm font-semibold text-gray-800 transition duration-500 ease-out hover:bg-[#f1ebe2] disabled:opacity-60"
-                                :disabled="form.processing"
-                                @click="join(community.id)"
+                            <Link
+                                :href="`/communities/${community.slug}`"
+                                class="mt-4 inline-flex h-11 w-full items-center justify-center rounded-full bg-lagoon-800 font-heading text-sm font-semibold text-white transition duration-500 ease-out hover:bg-lagoon-900"
                             >
-                                Join
-                            </button>
+                                {{ community.access_mode === 'open' ? 'View & join' : 'Request to join' }}
+                            </Link>
                         </div>
                     </li>
                 </ul>
@@ -110,6 +107,20 @@
                     <p class="mx-auto mt-6 max-w-sm text-sm font-normal leading-6 text-gray-600">
                         We'll show relevant communities here once they match your city and interests.
                     </p>
+                    <div class="mt-5 flex flex-wrap items-center justify-center gap-3">
+                        <Link
+                            href="/communities/create"
+                            class="inline-flex h-11 items-center justify-center rounded-full bg-lagoon-800 px-5 font-heading text-sm font-semibold text-white"
+                        >
+                            Create a community
+                        </Link>
+                        <Link
+                            href="/communities"
+                            class="inline-flex h-11 items-center justify-center rounded-full border border-line bg-white px-5 font-heading text-sm font-semibold text-gray-800"
+                        >
+                            Browse communities
+                        </Link>
+                    </div>
                 </div>
             </section>
 
@@ -124,10 +135,11 @@
 </template>
 
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 
 import AppNav from '@/components/AppNav.vue';
 import BaseIcon from '@/components/BaseIcon.vue';
+import CommunityCoverMedia from '@/components/communities/CommunityCoverMedia.vue';
 import CommunitiesEmptyArt from '@/components/home/CommunitiesEmptyArt.vue';
 
 defineProps<{
@@ -135,26 +147,15 @@ defineProps<{
     city: string | null;
     communities: Array<{
         id: number;
+        slug: string;
         name: string;
         description: string;
         members: number;
+        access_mode: string;
+        cover_url: string | null;
+        tag_keys: string[];
     }>;
 }>();
-
-const form = useForm({
-    communities: [] as number[],
-});
-
-const covers = [
-    'from-lagoon-200 via-lagoon-100 to-lagoon-50',
-    'from-moss-200 via-moss-100 to-moss-50',
-    'from-lagoon-100 via-[#dce8ee] to-paper',
-    'from-[#d7e3df] via-lagoon-50 to-[#eef3f1]',
-];
-
-function coverTone(id: number): string {
-    return covers[id % covers.length] ?? covers[0];
-}
 
 function membersLabel(count: number): string {
     if (count >= 1000) {
@@ -164,10 +165,5 @@ function membersLabel(count: number): string {
     }
 
     return `${count} ${count === 1 ? 'member' : 'members'}`;
-}
-
-function join(id: number): void {
-    form.communities = [id];
-    form.post('/join/communities', { preserveScroll: true });
 }
 </script>

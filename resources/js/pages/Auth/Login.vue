@@ -29,15 +29,11 @@
             />
 
             <div class="flex items-center justify-between gap-3">
-                <label class="inline-flex items-center gap-2.5 text-sm text-ink-soft">
-                    <input
-                        v-model="form.remember"
-                        type="checkbox"
-                        name="remember"
-                        class="size-5 rounded border-line text-lagoon-700 accent-lagoon-700"
-                    >
-                    Remember me
-                </label>
+                <UiCheckbox
+                    v-model="form.remember"
+                    name="remember"
+                    label="Remember me"
+                />
                 <Link
                     href="/forgot-password"
                     class="text-sm font-semibold text-lagoon-800 underline decoration-lagoon-200 underline-offset-4"
@@ -69,6 +65,7 @@ import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
 import AuthField from '@/components/auth/AuthField.vue';
+import UiCheckbox from '@/components/ui/UiCheckbox.vue';
 import AuthFrame from '@/components/auth/AuthFrame.vue';
 
 const page = usePage();
