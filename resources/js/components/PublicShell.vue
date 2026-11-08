@@ -15,13 +15,13 @@
                         Explore
                     </Link>
                     <Link
-                        href="/sign-in"
+                        :href="authHref('/sign-in')"
                         class="inline-flex h-10 items-center justify-center rounded-full px-4 text-sm font-semibold text-gray-700 transition-colors duration-300 hover:bg-gray-50"
                     >
                         Log in
                     </Link>
                     <Link
-                        href="/join"
+                        :href="authHref('/join')"
                         class="inline-flex h-10 items-center justify-center rounded-full bg-lagoon-800 px-4 text-sm font-semibold text-white transition hover:bg-lagoon-900"
                     >
                         Sign up
@@ -43,4 +43,13 @@ import { appName } from '@/lib/app';
 
 const page = usePage();
 const exploreActive = computed(() => String(page.url).startsWith('/explore'));
+
+function authHref(path: string): string {
+    const current = String(page.url || '/');
+    if (current === '/' || current.startsWith('/sign-in') || current.startsWith('/join')) {
+        return path;
+    }
+
+    return `${path}?redirect=${encodeURIComponent(current)}`;
+}
 </script>

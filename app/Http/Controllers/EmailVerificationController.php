@@ -14,7 +14,7 @@ class EmailVerificationController extends Controller
     public function create(Request $request): Response|RedirectResponse
     {
         if ($request->user()?->email_verified_at !== null) {
-            return redirect()->route('signup.communities');
+            return redirect()->intended(route('signup.communities'));
         }
 
         return Inertia::render('Auth/VerifyEmail', [
@@ -26,7 +26,7 @@ class EmailVerificationController extends Controller
     {
         $codes->verify($request->user(), $request->validated('code'));
 
-        return redirect()->route('signup.communities');
+        return redirect()->intended(route('signup.communities'));
     }
 
     public function resend(Request $request, EmailVerificationCodes $codes): RedirectResponse

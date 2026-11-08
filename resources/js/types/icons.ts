@@ -14,5 +14,19 @@ export type IconName =
     | 'info'
     | 'place-community'
     | 'menu'
-    | 'close';
-
+    | 'close'
+    | 'sprout'
+    | 'bulb'
+    | 'sparkles'
+    | 'plus'
+    | 'pencil'
+    | 'external'
+    | 'gear'
+    | 'document-plus'
+    | 'start-post'
+    | 'start-communities'
+    | 'start-explore'
+    | 'bookmark'
+    | 'link'
+    | 'close-sm'
+    | 'bell';

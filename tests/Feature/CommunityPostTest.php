@@ -250,6 +250,8 @@ class CommunityPostTest extends TestCase
                 ->where('categories.0.key', 'housing')
                 ->where('categories.0.safety_warning', true)
                 ->where('safetyNotice', config('posts.safety_notice'))
+                ->has('hints.title')
+                ->has('locationSuggestions')
             );
     }
 
@@ -276,5 +278,89 @@ class CommunityPostTest extends TestCase
                 'urgency' => 'normal',
             ])
             ->assertForbidden();
+    }
+
+    public function test_offer_author_cannot_reply_on_own_offer_but_others_can(): void
+    {
+        $owner = User::factory()->create();
+        $helper = User::factory()->create();
+        $seeker = User::factory()->create();
+        $community = Community::factory()->open()->withOwner($owner)->create([
+            'who_can_post' => 'members',
+        ]);
+
+        foreach ([$helper, $seeker] as $member) {
+            $community->members()->attach($member->id, [
+                'role' => Community::ROLE_MEMBER,
+                'guidelines_accepted_at' => now(),
+            ]);
+        }
+
+        $offer = Post::factory()->offer()->categories(['immigration', 'legal'])->anywhere()->create([
+            'community_id' => $community->id,
+            'user_id' => $helper->id,
+            'title' => 'Visa and paperwork help',
+        ]);
+
+        $this->actingAs($helper)
+            ->get(route('communities.posts.show', [$community, $offer]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Communities/Posts/Show')
+                ->where('permissions.can_reply', false)
+                ->where('permissions.can_report', false)
+                ->where('permissions.is_author', true)
+                ->where('permissions.can_mark_helped', false)
+                ->where('post.category_labels', ['Immigration and paperwork', 'Legal help'])
+                ->has('post.created_at_human')
+            );
+
+        $this->actingAs($helper)
+            ->from(route('communities.posts.show', [$community, $offer]))
+            ->post(route('communities.posts.replies.store', [$community, $offer]), [
+                'body' => 'Replying to myself should fail.',
+            ])
+            ->assertSessionHasErrors('body');
+
+        $this->actingAs($seeker)
+            ->post(route('communities.posts.replies.store', [$community, $offer]), [
+                'body' => 'I need help with my visa paperwork.',
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('post_replies', [
+            'post_id' => $offer->id,
+            'user_id' => $seeker->id,
+        ]);
+    }
+
+    public function test_author_cannot_report_own_post(): void
+    {
+        $owner = User::factory()->create();
+        $author = User::factory()->create();
+        $community = Community::factory()->open()->withOwner($owner)->create();
+        $community->members()->attach($author->id, [
+            'role' => Community::ROLE_MEMBER,
+            'guidelines_accepted_at' => now(),
+        ]);
+
+        $post = Post::factory()->create([
+            'community_id' => $community->id,
+            'user_id' => $author->id,
+        ]);
+
+        $this->actingAs($author)
+            ->from(route('communities.posts.show', [$community, $post]))
+            ->post(route('reports.store'), [
+                'reportable_type' => 'post',
+                'reportable_id' => $post->id,
+                'reason_key' => 'spam',
+            ])
+            ->assertSessionHasErrors('report');
+
+        $this->assertDatabaseMissing('reports', [
+            'reporter_id' => $author->id,
+            'reportable_id' => $post->id,
+        ]);
     }
 }

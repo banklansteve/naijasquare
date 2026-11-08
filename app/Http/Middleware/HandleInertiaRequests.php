@@ -53,6 +53,9 @@ class HandleInertiaRequests extends Middleware
                         : null,
                 ],
             ],
+            'unreadNotificationsCount' => $user === null
+                ? 0
+                : fn () => $user->appNotifications()->whereNull('read_at')->count(),
         ];
     }
 }

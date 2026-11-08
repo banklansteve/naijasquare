@@ -8,6 +8,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -28,6 +29,8 @@ use Illuminate\Notifications\Notifiable;
     'city',
     'life_stage',
     'interests',
+    'help_category_keys',
+    'help_note',
     'photo_path',
     'terms_accepted_at',
 ])]
@@ -39,6 +42,7 @@ use Illuminate\Notifications\Notifiable;
     'postcode',
     'address_line',
     'photo_path',
+    'invited_by_user_id',
 ])]
 class User extends Authenticatable
 {
@@ -62,7 +66,9 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'terms_accepted_at' => 'datetime',
+            'home_checklist_dismissed_at' => 'datetime',
             'interests' => 'array',
+            'help_category_keys' => 'array',
             'password' => 'hashed',
         ];
     }
@@ -73,8 +79,16 @@ class User extends Authenticatable
     public function communities(): BelongsToMany
     {
         return $this->belongsToMany(Community::class)
-            ->withPivot(['role', 'guidelines_accepted_at'])
+            ->withPivot(['role', 'guidelines_accepted_at', 'pinned_at'])
             ->withTimestamps();
+    }
+
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function invitedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'invited_by_user_id');
     }
 
     /**

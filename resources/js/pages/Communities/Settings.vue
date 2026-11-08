@@ -231,16 +231,68 @@
 
                         <div>
                             <h2 class="font-heading text-lg font-bold text-gray-800">Reported content</h2>
-                            <div class="mt-3 rounded-[1.35rem] border border-dashed border-gray-200 bg-white/70 px-5 py-8 text-center">
-                                <p class="text-sm text-gray-500">The full report queue opens with moderation in the next part of the app.</p>
-                            </div>
-                        </div>
+                            <p class="mt-1 text-sm text-ink-soft">
+                                Review reports from members. Dismiss keeps the content up; remove hides it from the community.
+                            </p>
 
-                        <div>
-                            <h2 class="font-heading text-lg font-bold text-gray-800">Pins & mutes</h2>
-                            <div class="mt-3 rounded-[1.35rem] border border-dashed border-gray-200 bg-white/70 px-5 py-8 text-center">
-                                <p class="text-sm text-gray-500">Pin and mute controls open with posts.</p>
-                            </div>
+                            <ul v-if="permissions.can_moderate && reports.length" class="mt-4 space-y-3">
+                                <li
+                                    v-for="row in reports"
+                                    :key="row.id"
+                                    class="rounded-2xl border border-line bg-white px-4 py-4"
+                                >
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <span class="rounded-full bg-clay-100 px-2.5 py-0.5 text-xs font-semibold text-clay-800">
+                                            {{ row.reason_label }}
+                                        </span>
+                                        <span class="rounded-full bg-lagoon-50 px-2.5 py-0.5 text-xs font-semibold text-lagoon-800">
+                                            {{ row.target_label }}
+                                        </span>
+                                        <span
+                                            v-if="row.already_hidden"
+                                            class="text-xs font-semibold text-ink-soft"
+                                        >
+                                            Already hidden
+                                        </span>
+                                    </div>
+                                    <p class="mt-2 font-heading text-sm font-bold text-gray-800">{{ row.title }}</p>
+                                    <p class="mt-1 text-sm leading-6 text-gray-600">{{ row.excerpt }}</p>
+                                    <p class="mt-2 text-xs text-ink-soft">
+                                        By {{ row.author_name }} · reported by {{ row.reporter.name }}
+                                    </p>
+                                    <p v-if="row.note" class="mt-2 text-sm text-gray-600">“{{ row.note }}”</p>
+                                    <div class="mt-3 flex flex-wrap items-center gap-3">
+                                        <Link
+                                            :href="row.href"
+                                            class="text-sm font-semibold text-lagoon-800"
+                                        >
+                                            View
+                                        </Link>
+                                        <button
+                                            type="button"
+                                            class="text-sm font-semibold text-ink-soft"
+                                            :disabled="actingReportId === row.id"
+                                            @click="dismissReport(row.id)"
+                                        >
+                                            Dismiss
+                                        </button>
+                                        <button
+                                            type="button"
+                                            class="text-sm font-semibold text-clay-800"
+                                            :disabled="actingReportId === row.id"
+                                            @click="removeReported(row.id)"
+                                        >
+                                            Remove content
+                                        </button>
+                                    </div>
+                                </li>
+                            </ul>
+                            <p v-else-if="permissions.can_moderate" class="mt-3 text-sm text-gray-500">
+                                No pending reports. Nice work.
+                            </p>
+                            <p v-else class="mt-3 text-sm text-gray-500">
+                                You need moderation permission to review reports.
+                            </p>
                         </div>
 
                         <div>
@@ -347,6 +399,7 @@ const props = defineProps<{
         can_remove_admin: boolean;
         can_approve: boolean;
         can_remove_member: boolean;
+        can_moderate: boolean;
     };
     admins: Array<{ id: number; name: string; email: string; role: string; role_label: string }>;
     pendingInvites: Array<{ id: number; email: string; created_at: string | null }>;
@@ -355,6 +408,21 @@ const props = defineProps<{
         note: string | null;
         created_at: string | null;
         user: { id: number; name: string; email: string };
+    }>;
+    reports: Array<{
+        id: number;
+        reason_key: string;
+        reason_label: string;
+        note: string | null;
+        created_at: string | null;
+        reporter: { id: number | null; name: string };
+        target_type: string;
+        target_label: string;
+        title: string;
+        excerpt: string;
+        author_name: string;
+        href: string;
+        already_hidden: boolean;
     }>;
     members: Array<{ id: number; name: string }>;
     transferCandidates: Array<{ id: number; name: string; role: string }>;
@@ -411,6 +479,7 @@ const invite = useForm({ email: '' });
 const transferForm = useForm({ user_id: '', confirm: false });
 const deleteForm = useForm({ confirm_name: '' });
 const coverPreview = ref<string | null>(null);
+const actingReportId = ref<number | null>(null);
 
 const transferOptions = computed(() =>
     props.transferCandidates.map((candidate) => ({
@@ -487,6 +556,30 @@ function approveRequest(id: number): void {
 
 function declineRequest(id: number): void {
     router.post(`/communities/${props.community.slug}/settings/join-requests/${id}/decline`, {}, { preserveScroll: true });
+}
+
+function dismissReport(id: number): void {
+    actingReportId.value = id;
+    router.post(`/communities/${props.community.slug}/settings/reports/${id}/dismiss`, {}, {
+        preserveScroll: true,
+        onFinish: () => {
+            actingReportId.value = null;
+        },
+    });
+}
+
+function removeReported(id: number): void {
+    if (! confirm('Remove this content from the community? Members will no longer see it.')) {
+        return;
+    }
+
+    actingReportId.value = id;
+    router.post(`/communities/${props.community.slug}/settings/reports/${id}/remove`, {}, {
+        preserveScroll: true,
+        onFinish: () => {
+            actingReportId.value = null;
+        },
+    });
 }
 
 function removeMember(id: number): void {

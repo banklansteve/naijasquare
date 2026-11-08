@@ -22,6 +22,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'verified.email' => EnsureEmailIsVerified::class,
         ]);
 
+        $middleware->redirectGuestsTo(fn (): string => route('login'));
+
         // Signed-in members never see the landing page. "/home" is a
         // holding page until the Relevant-to-you surface (D-016 step 7).
         $middleware->redirectUsersTo(function (Request $request) {

@@ -30,6 +30,18 @@ class ReportContent
             ]);
         }
 
+        $ownerId = match (true) {
+            $reportable instanceof Post => (int) $reportable->user_id,
+            $reportable instanceof PostReply => (int) $reportable->user_id,
+            default => null,
+        };
+
+        if ($ownerId !== null && $ownerId === (int) $reporter->id) {
+            throw ValidationException::withMessages([
+                'report' => 'You cannot report your own post or reply.',
+            ]);
+        }
+
         $existing = Report::query()
             ->where('reporter_id', $reporter->id)
             ->where('reportable_type', $reportable::class)
@@ -44,6 +56,7 @@ class ReportContent
         }
 
         return Report::query()->create([
+            'community_id' => $community->id,
             'reporter_id' => $reporter->id,
             'reportable_type' => $reportable::class,
             'reportable_id' => $reportable->getKey(),

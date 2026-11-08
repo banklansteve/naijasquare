@@ -256,7 +256,7 @@
             </button>
             <p v-if="step === 0" class="text-center text-sm text-ink-soft">
                 Already have an account?
-                <Link href="/sign-in" class="ml-1 font-semibold text-lagoon-800 underline decoration-lagoon-200 underline-offset-4">Sign in</Link>
+                <Link :href="loginHref" class="ml-1 font-semibold text-lagoon-800 underline decoration-lagoon-200 underline-offset-4">Sign in</Link>
             </p>
         </form>
     </AuthFrame>
@@ -275,7 +275,16 @@ const props = defineProps<{
     interests: Record<string, string>;
     privacyNote: string;
     inviteNote: string;
+    redirect?: string | null;
 }>();
+
+const loginHref = computed(() => {
+    if (! props.redirect) {
+        return '/sign-in';
+    }
+
+    return `/sign-in?redirect=${encodeURIComponent(props.redirect)}`;
+});
 
 const steps = [
     { kicker: '', title: 'Create Your Account' },

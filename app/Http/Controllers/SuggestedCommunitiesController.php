@@ -19,7 +19,7 @@ class SuggestedCommunitiesController extends Controller
         $communities = $suggestions->for($request->user());
 
         if ($communities->isEmpty()) {
-            return redirect()->route('home');
+            return redirect()->intended(route('home'));
         }
 
         return Inertia::render('Auth/Communities', [
@@ -52,6 +52,6 @@ class SuggestedCommunitiesController extends Controller
             $join->join($request->user(), $community);
         }
 
-        return redirect()->route('home');
+        return redirect()->intended(route('home'));
     }
 }

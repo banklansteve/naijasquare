@@ -25,6 +25,23 @@
                         </Link>
                     </nav>
 
+                    <Link
+                        href="/notifications"
+                        class="relative inline-flex size-11 items-center justify-center rounded-full transition duration-300 ease-out"
+                        :class="isActive('/notifications')
+                            ? 'bg-lagoon-50 text-lagoon-800'
+                            : 'text-gray-700 hover:bg-gray-50'"
+                        aria-label="Notifications"
+                    >
+                        <BaseIcon name="bell" class="size-5" />
+                        <span
+                            v-if="unreadCount > 0"
+                            class="absolute top-1.5 right-1.5 grid min-w-4 place-items-center rounded-full bg-clay-700 px-1 text-[10px] font-bold text-white"
+                        >
+                            {{ unreadCount > 9 ? '9+' : unreadCount }}
+                        </span>
+                    </Link>
+
                     <div ref="profileWrap" class="relative hidden md:block">
                         <button
                             type="button"
@@ -214,6 +231,7 @@ const primaryLinks = [
 ];
 
 const profileLinks = [
+    { href: '/notifications', label: 'Notifications' },
     { href: '/profile', label: 'Profile & settings' },
     { href: '/communities', label: 'My communities' },
     { href: '/communities/create', label: 'Create a community' },
@@ -223,6 +241,12 @@ const mobileLinks = [
     ...primaryLinks,
     ...profileLinks,
 ];
+
+const unreadCount = computed(() => {
+    const count = page.props.unreadNotificationsCount;
+
+    return typeof count === 'number' ? count : 0;
+});
 
 function isActive(href: string): boolean {
     const url = page.url.split('?')[0] ?? '';

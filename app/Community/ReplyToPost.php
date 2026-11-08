@@ -21,6 +21,20 @@ class ReplyToPost
             ]);
         }
 
+        if ((int) $post->user_id === (int) $user->id) {
+            $label = $post->isOffer() ? 'Offer' : 'Need';
+
+            throw ValidationException::withMessages([
+                'body' => "You cannot reply on your own {$label}. Wait for someone else to reply.",
+            ]);
+        }
+
+        if ($post->isHidden()) {
+            throw ValidationException::withMessages([
+                'body' => 'This post is no longer open for replies.',
+            ]);
+        }
+
         return PostReply::query()->create([
             'post_id' => $post->id,
             'user_id' => $user->id,

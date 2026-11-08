@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\LoginRequest;
+use App\Support\IntendedUrl;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -11,9 +13,15 @@ use Inertia\Response;
 
 class LoginController extends Controller
 {
-    public function create(): Response
+    public function create(Request $request): Response
     {
-        return Inertia::render('Auth/Login');
+        IntendedUrl::captureFromRequest($request);
+
+        $redirect = $request->session()->get('url.intended');
+
+        return Inertia::render('Auth/Login', [
+            'redirect' => is_string($redirect) ? $redirect : null,
+        ]);
     }
 
     public function store(LoginRequest $request): RedirectResponse

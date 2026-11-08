@@ -17,10 +17,14 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
     'title',
     'body',
     'category_key',
+    'category_keys',
     'location_label',
+    'location_labels',
     'urgency',
     'expires_at',
     'resolved_at',
+    'hidden_at',
+    'hidden_by_user_id',
 ])]
 class Post extends Model
 {
@@ -37,8 +41,11 @@ class Post extends Model
     protected function casts(): array
     {
         return [
+            'category_keys' => 'array',
+            'location_labels' => 'array',
             'expires_at' => 'datetime',
             'resolved_at' => 'datetime',
+            'hidden_at' => 'datetime',
         ];
     }
 
@@ -79,6 +86,11 @@ class Post extends Model
         return $this->type === self::TYPE_NEED;
     }
 
+    public function isOffer(): bool
+    {
+        return $this->type === self::TYPE_OFFER;
+    }
+
     public function isResolved(): bool
     {
         return $this->resolved_at !== null;
@@ -89,9 +101,65 @@ class Post extends Model
         return $this->expires_at !== null && $this->expires_at->isPast();
     }
 
+    public function isHidden(): bool
+    {
+        return $this->hidden_at !== null;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function categoryKeys(): array
+    {
+        $keys = collect($this->category_keys ?? [])
+            ->filter(fn ($key): bool => is_string($key) && $key !== '')
+            ->values()
+            ->all();
+
+        if ($keys === [] && filled($this->category_key)) {
+            return [(string) $this->category_key];
+        }
+
+        return array_values($keys);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function locationLabels(): array
+    {
+        $labels = collect($this->location_labels ?? [])
+            ->filter(fn ($label): bool => is_string($label) && trim($label) !== '')
+            ->map(fn (string $label): string => trim($label))
+            ->values()
+            ->all();
+
+        if ($labels === [] && filled($this->location_label)) {
+            return [(string) $this->location_label];
+        }
+
+        return array_values($labels);
+    }
+
+    public function isLocationSpecific(): bool
+    {
+        return $this->locationLabels() !== [];
+    }
+
     public function categoryLabel(): string
     {
         return (string) config("posts.categories.{$this->category_key}.label", $this->category_key);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function categoryLabels(): array
+    {
+        return collect($this->categoryKeys())
+            ->map(fn (string $key): string => (string) config("posts.categories.{$key}.label", $key))
+            ->values()
+            ->all();
     }
 
     public function typeLabel(): string
@@ -106,6 +174,12 @@ class Post extends Model
 
     public function requiresSafetyWarning(): bool
     {
+        foreach ($this->categoryKeys() as $key) {
+            if ((bool) config("posts.categories.{$key}.safety_warning", false)) {
+                return true;
+            }
+        }
+
         return (bool) config("posts.categories.{$this->category_key}.safety_warning", false);
     }
 }

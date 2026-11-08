@@ -52,7 +52,7 @@
 
             <p class="text-center text-sm text-ink-soft">
                 New here?
-                <Link href="/join" class="ml-1 font-semibold text-lagoon-800 underline decoration-lagoon-200 underline-offset-4">
+                <Link :href="registerHref" class="ml-1 font-semibold text-lagoon-800 underline decoration-lagoon-200 underline-offset-4">
                     Create an account
                 </Link>
             </p>
@@ -68,13 +68,25 @@ import AuthField from '@/components/auth/AuthField.vue';
 import UiCheckbox from '@/components/ui/UiCheckbox.vue';
 import AuthFrame from '@/components/auth/AuthFrame.vue';
 
+const props = defineProps<{
+    redirect?: string | null;
+}>();
+
 const page = usePage();
 const status = computed(() => (page.props.flash as { status?: string | null }).status ?? null);
+
+const registerHref = computed(() => {
+    if (! props.redirect) {
+        return '/join';
+    }
+
+    return `/join?redirect=${encodeURIComponent(props.redirect)}`;
+});
 
 const form = useForm({
     email: '',
     password: '',
-    remember: false,
+    remember: true,
 });
 
 function submit(): void {

@@ -153,8 +153,8 @@ class CommunityController extends Controller
             return Inertia::render('Communities/PublicShow', [
                 'community' => $card,
                 'authLinks' => [
-                    'register' => route('register'),
-                    'login' => route('login'),
+                    'register' => route('register', ['redirect' => url()->current()]),
+                    'login' => route('login', ['redirect' => url()->current()]),
                 ],
             ])->withViewData(['meta' => $meta]);
         }
@@ -198,8 +198,9 @@ class CommunityController extends Controller
 
         $posts = $isMember
             ? $community->posts()
+                ->whereNull('hidden_at')
                 ->with(['author:id,name'])
-                ->withCount('replies')
+                ->withCount(['replies' => fn ($query) => $query->whereNull('hidden_at')])
                 ->latest()
                 ->limit(30)
                 ->get()

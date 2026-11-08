@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Community;
 use App\Models\Post;
 use App\Models\Report;
 use App\Models\User;
@@ -20,6 +21,7 @@ class ReportFactory extends Factory
     public function definition(): array
     {
         return [
+            'community_id' => Community::factory(),
             'reporter_id' => User::factory(),
             'reportable_type' => Post::class,
             'reportable_id' => Post::factory(),
@@ -27,5 +29,15 @@ class ReportFactory extends Factory
             'note' => null,
             'status' => Report::STATUS_PENDING,
         ];
+    }
+
+    public function forPost(Post $post, ?User $reporter = null): static
+    {
+        return $this->state(fn (): array => [
+            'community_id' => $post->community_id,
+            'reporter_id' => $reporter?->id ?? User::factory(),
+            'reportable_type' => Post::class,
+            'reportable_id' => $post->id,
+        ]);
     }
 }

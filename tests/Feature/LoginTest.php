@@ -38,6 +38,45 @@ class LoginTest extends TestCase
         $this->assertAuthenticatedAs($user);
     }
 
+    public function test_guest_is_sent_back_to_the_page_they_wanted_after_sign_in(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'ada@example.com',
+            'password' => 'x',
+        ]);
+
+        $this->get('/communities/create')->assertRedirect(route('login'));
+
+        $this->post('/sign-in', [
+            'email' => 'ada@example.com',
+            'password' => 'x',
+        ])->assertRedirect('/communities/create');
+
+        $this->assertAuthenticatedAs($user);
+    }
+
+    public function test_redirect_query_is_honoured_after_sign_in(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'ada@example.com',
+            'password' => 'x',
+        ]);
+
+        $this->get('/sign-in?redirect=/explore/leeds')->assertOk();
+
+        $this->post('/sign-in', [
+            'email' => 'ada@example.com',
+            'password' => 'x',
+        ])->assertRedirect('/explore/leeds');
+
+        $this->assertAuthenticatedAs($user);
+    }
+
+    public function test_session_lifetime_is_seven_days(): void
+    {
+        $this->assertSame(60 * 24 * 7, (int) config('session.lifetime'));
+    }
+
     public function test_an_unverified_person_is_sent_to_verify_email_after_sign_in(): void
     {
         User::factory()->unverified()->create([

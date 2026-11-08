@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Community\CommunityAuthorizer;
 use App\Community\InviteCommunityAdmin;
 use App\Community\JoinCommunity;
+use App\Community\ListCommunityReports;
 use App\Community\ManageCommunity;
 use App\Http\Requests\DeleteCommunityRequest;
 use App\Http\Requests\InviteCommunityAdminRequest;
@@ -24,14 +25,21 @@ use Inertia\Response;
 
 class CommunitySettingsController extends Controller
 {
-    public function show(Request $request, Community $community, CommunityAuthorizer $authorizer, ?string $section = 'general'): Response
-    {
+    public function show(
+        Request $request,
+        Community $community,
+        CommunityAuthorizer $authorizer,
+        ListCommunityReports $reports,
+        ?string $section = 'general',
+    ): Response {
         $user = $request->user();
         $authorizer->authorize($user, 'community.update', $community);
 
         $section ??= 'general';
         $allowed = ['general', 'access', 'guidelines', 'admins', 'moderation', 'danger'];
         abort_unless(in_array($section, $allowed, true), 404);
+
+        $canModerate = $authorizer->can($user, 'community.moderate', $community);
 
         return Inertia::render('Communities/Settings', [
             'section' => $section,
@@ -51,7 +59,9 @@ class CommunitySettingsController extends Controller
                 'can_remove_admin' => $authorizer->can($user, 'community.moderator.remove', $community),
                 'can_approve' => $authorizer->can($user, 'community.member.approve', $community),
                 'can_remove_member' => $authorizer->can($user, 'community.member.remove', $community),
+                'can_moderate' => $canModerate,
             ],
+            'reports' => $canModerate ? $reports->pending($community) : [],
             'admins' => $community->members()
                 ->wherePivotIn('role', [Community::ROLE_OWNER, Community::ROLE_MODERATOR])
                 ->get()

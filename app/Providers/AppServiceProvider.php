@@ -36,6 +36,8 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('community-create', fn (Request $request) => Limit::perMinute(5)->by('community-create:'.$request->user()?->id));
         RateLimiter::for('community-join', fn (Request $request) => Limit::perMinute(20)->by('community-join:'.$request->user()?->id));
         RateLimiter::for('user-search', fn (Request $request) => Limit::perMinute(30)->by('user-search:'.$request->user()?->id));
+        RateLimiter::for('invite-share', fn (Request $request) => Limit::perMinute(20)->by('invite-share:'.$request->user()?->id));
+        RateLimiter::for('community-pin', fn (Request $request) => Limit::perMinute(30)->by('community-pin:'.$request->user()?->id));
 
         ResetPassword::createUrlUsing(function (object $notifiable, string $token): string {
             return url(route('password.reset', [

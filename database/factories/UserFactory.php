@@ -40,7 +40,20 @@ class UserFactory extends Factory
             'city' => 'Sunderland',
             'life_stage' => 'exploring',
             'interests' => ['community'],
+            'help_category_keys' => null,
+            'help_note' => null,
         ];
+    }
+
+    /**
+     * @param  list<string>  $categories
+     */
+    public function canHelpWith(array $categories = ['housing'], ?string $note = null): static
+    {
+        return $this->state(fn (): array => [
+            'help_category_keys' => $categories,
+            'help_note' => $note,
+        ]);
     }
 
     /**

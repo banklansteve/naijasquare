@@ -13,6 +13,10 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
     'post_id',
     'user_id',
     'body',
+    'helped_at',
+    'helped_by_user_id',
+    'hidden_at',
+    'hidden_by_user_id',
 ])]
 class PostReply extends Model
 {
@@ -20,11 +24,32 @@ class PostReply extends Model
     use HasFactory;
 
     /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'helped_at' => 'datetime',
+            'hidden_at' => 'datetime',
+        ];
+    }
+
+    public function isHelped(): bool
+    {
+        return $this->helped_at !== null;
+    }
+
+    /**
      * @return BelongsTo<Post, $this>
      */
     public function post(): BelongsTo
     {
         return $this->belongsTo(Post::class);
+    }
+
+    public function isHidden(): bool
+    {
+        return $this->hidden_at !== null;
     }
 
     /**

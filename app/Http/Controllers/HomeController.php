@@ -2,21 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Signup\CommunitySuggestions;
+use App\Home\BuildHomePage;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class HomeController extends Controller
 {
-    public function __invoke(Request $request, CommunitySuggestions $suggestions): Response
+    public function __invoke(Request $request, BuildHomePage $home): Response
     {
-        $user = $request->user();
-
-        return Inertia::render('Home', [
-            'firstName' => $user->first_name,
-            'city' => $user->city,
-            'communities' => $suggestions->for($user)->values(),
-        ]);
+        return Inertia::render('Home', $home->handle($request->user(), $request));
     }
 }

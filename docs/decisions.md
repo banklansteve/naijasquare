@@ -128,10 +128,47 @@ work and must not contradict it. To change a decision, add a NEW entry that supe
 ## Access and architecture decisions
 
 ## D-016: Build order (vertical slices)
-- Status: Accepted
+- Status: Superseded by D-039
 - Date: 2026-10-26
 - Decision: 1) Foundations 2) Identity and access 3) Admin skeleton 4) Communities 5) Post framework + Need/Offer 6) Reporting and moderation 7) Search and home surface 8) Notifications 9) Events and RSVP 10) Intro and Discussion posts 11) Trust signals 12) Private beta launch.
 - Consequences: Do not build later steps before their dependencies. Step 6 must complete before step 12.
+- Supersedes / Superseded by: Superseded by D-039
+
+## D-039: Build order — member and community surfaces before platform Admin
+- Status: Accepted
+- Date: 2026-11-08
+- Context: Platform Admin early (old D-016 step 3 / D-019) delayed finishing the surfaces members and community admins actually use. Communities and Need/Offer were already pulled forward in practice (D-034, D-036).
+- Decision: New order: 1) Foundations 2) Identity 3) Communities (+ community admin) 4) Posts: Need/Offer + threads + community post views 5) Home + discovery 6) Community-scoped safety (report UX + community mod actions; no platform Admin required yet) 7) Notifications 8) Events + RSVP 9) Intro + Discussion 10) Trust signals 11) Platform Admin skeleton + T&S queue 12) Private beta. D-014 still holds: real-user beta only after reports can be actioned (community-scoped first is enough to proceed; platform queue before open beta).
+- Consequences: Supersedes D-016 numbering. Softens D-019’s “Admin early” consequence — platform back-office moves to step 11. Do not start platform Admin until member/community slices through step 6 are solid.
+- Supersedes / Superseded by: Supersedes D-016; qualifies D-019 timing
+
+## D-040: Community-scoped report queue before platform T&S
+- Status: Accepted
+- Date: 2026-11-08
+- Context: D-036 stored pending reports with no action path. D-039 step 6 requires community admins to act before platform Admin exists.
+- Decision: Community Owners/Moderators with `community.moderate` see pending reports in Settings → Moderation. Actions: dismiss (content stays) or remove (soft-hide post/reply via `hidden_at`; sibling pending reports on the same target close as removed). Reports are scoped by `community_id`. Hidden posts leave the community feed and show a removed page to members; moderators can still open them. Platform T&S queue remains D-039 step 11.
+- Consequences: Satisfies D-014 for closed community testing without a platform Admin app. No bans, appeals, or cross-community escalation in this slice.
+
+## D-041: Need/Offer discovery — related Offers + notify Offer authors
+- Status: Accepted
+- Date: 2026-11-08
+- Context: Offers were browse-only; Needs did not surface matching Offers, and Offer authors were not told when a related Need appeared. Auto-matching into nested Needs under Offers was rejected as confusing.
+- Decision: Needs keep **one** category. When creating or viewing a Need, show related open Offers in the same community (same category; prefer coarse area overlap). CTA is “Reply on this Offer”. Posting a Need also creates an in-app `related_need` notification for authors of matching Offers (deduped per need/author; exclude self). Notifications list at `/notifications` with unread badge in nav. Offers remain separate posts — people reply on the Offer thread; they do not nest a Need under it.
+- Consequences: Ties Offer usefulness to Need flow without DMs. Full notification preferences/email remain later (D-039 step 7 hardening). Multi-category Offers / multi-area fields stay deferred.
+
+## D-042: Need/Offer category selects + optional Offer location
+- Status: Accepted
+- Date: 2026-11-08
+- Context: Category chip grids were crowded; Offers often are not place-tied (e.g. immigration advice); Offer urgency was noise. D-041 deferred multi-category Offers.
+- Decision: Need uses a searchable single `UiSelect` for one category; keeps urgency and optional single area. Offer uses `UiMultiSelect` for up to **3** categories; **no urgency** (server defaults expiry to `normal`); location is optional — unchecked “specific place” stores no areas (“Anywhere”); when checked, up to **3** areas. Posts gain `category_keys` and `location_labels` JSON (backfilled); `category_key` / `location_label` remain the primary values. Related Offers match when Need category ∈ Offer categories; non-location Offers still match regardless of Need area.
+- Consequences: Supersedes D-041’s “multi deferred” note for this data. Edit-post and notification prefs remain later.
+
+## D-043: Post show UX + Need author “This helped”
+- Status: Accepted
+- Date: 2026-11-08
+- Context: Authors replying on their own Need/Offer was noise; safety notices were shown to authors about their own posts; timestamps were missing; public reply upvotes would look like likes (rejected by product rules) while trust is meant to come from the person helped.
+- Decision: Authors cannot reply on their own Need or Offer (UI + server). Safety notices hide for the author. Need/Offer show has a back control to the community and relative timestamps (`created_at_human`, e.g. “2 hours ago” / “Yesterday”). On **Needs only**, the Need author may mark one or more replies “This helped” (`helped_at`); helped replies sort above others with a calm badge. No public upvote scores. Offer reply “helped” stays out.
+- Consequences: Aligns with D-006 “helped me” signals without crowd ranking. Full trust badge surface remains D-039 step 10.
 
 ## D-017: Three-layer access model
 - Status: Accepted
@@ -242,11 +279,28 @@ work and must not contradict it. To change a decision, add a NEW entry that supe
 - Consequences: `.env.example` documents the local MySQL settings. This does not close O-002; the rest of the stack is still open.
 
 ## D-033: The first signed-in screen is orientation, not a feed
-- Status: Accepted
+- Status: Superseded by D-037
 - Date: 2026-10-31
 - Context: D-016 puts the home surface after posts and moderation. A person who has just verified their email still needs a first screen.
 - Decision: That screen welcomes them by first name and city, offers three entry points (communities, a Need, local resources), and lists real communities that match their city and interests. Joining uses the same suggestion rules as sign-up. There is no feed, checklist, or progress bar.
 - Consequences: This does not build Need posts, the resource library, or search. Those stay on their later steps. A community with no members is not shown, and activity is not invented. Ask for help and Explore local resources explain the action until those steps exist.
+- Supersedes / Superseded by: Superseded by D-037
+
+## D-037: Home is an intent-driven utility surface
+- Status: Superseded by D-038
+- Date: 2026-11-07
+- Context: Need/Offer posting exists (D-036). The orientation-only Home (D-033) no longer matches how members should use the product day to day. Engagement ranking and a social feed remain rejected.
+- Decision: `/home` is a single-column (phone) / main+rail (desktop) utility surface: greeting and city chip; optional first-week checklist (join two communities, ask or answer a Need, say what you can help with) that disappears when complete; primary actions that only link to real destinations; the member’s open Needs/Offers; “Needs you could help with” ranked by help-with category match, unanswered state, location, urgency, then recency, with category filter chips; suggested communities via the existing suggestion rules. Empty sections collapse. Optional `help_category_keys` + `help_note` on the user profile power helper matching. Events, activity snapshots, “answers worth keeping”, and moderator strips stay later. Communities index upgrades (pin, mute, health badges, recently visited) are a separate follow-up.
+- Consequences: Supersedes D-033. No algorithmic For You feed. Meetup/Events CTAs are not shown until step 9. Checklist is completion-based, not a gamified progress bar.
+- Supersedes / Superseded by: Superseded by D-038
+
+## D-038: Home is a 60/40 utility + growth surface
+- Status: Accepted
+- Date: 2026-11-08
+- Context: D-037 established intent-driven Home. Launch growth depends on friends bringing friends (D-003) and WhatsApp coexistence (D-002). The first-week checklist needed a clearer progress focus, and communities needed pin favourites without becoming a social feed.
+- Decision: Desktop Home is ~60/40 (Needs/actions left; communities + invite right). Greeting includes Ask/Offer. First-week is one dismissible progress focus card (skills chips live inside it; complete or “Not now”). Remove the old “Start here” tile row. **Bring your people** is a lagoon-tinted personal invite card (WhatsApp + copy link; `/join?invited_by={uid}`; inviter attribution stored as `invited_by_user_id`; share endpoint rate-limited). Your communities show ≤3 with pin (`community_user.pinned_at`, pinned first). Near-you shows 1–2 honest suggestions or a start-first empty state. Monograms use a stable colour from the community name. No community-specific WhatsApp share in this slice; no engagement ranking.
+- Consequences: Supersedes D-037 layout specifics. Personal platform invites are attribution-only (not a trust or permissions shortcut). Community-scoped invite share stays later.
+- Supersedes / Superseded by: Supersedes D-037
 
 ## D-034: Community access modes and join notes
 - Status: Accepted

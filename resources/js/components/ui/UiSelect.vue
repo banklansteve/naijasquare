@@ -46,32 +46,53 @@
             leave-from-class="translate-y-0 scale-100 opacity-100"
             leave-to-class="translate-y-1 scale-[0.98] opacity-0"
         >
-            <ul
+            <div
                 v-if="open"
-                :id="listId"
-                class="absolute z-50 mt-2 max-h-72 min-w-full w-max max-w-[min(28rem,92vw)] origin-top overflow-auto rounded-2xl border border-line bg-white py-2 shadow-[0_18px_40px_-24px_rgb(12_44_49/0.45)]"
-                role="listbox"
-                :aria-labelledby="buttonId"
-                @keydown="onListKeydown"
+                class="absolute z-50 mt-2 min-w-full w-max max-w-[min(28rem,92vw)] origin-top overflow-hidden rounded-2xl border border-line bg-white shadow-[0_18px_40px_-24px_rgb(12_44_49/0.45)]"
             >
-                <li
-                    v-for="(option, index) in normalizedOptions"
-                    :key="String(option.value)"
-                    role="option"
-                    :aria-selected="String(option.value) === String(modelValue)"
-                    class="cursor-pointer px-4 py-2.5 text-sm font-medium leading-snug whitespace-normal break-words transition-colors duration-200 ease-out"
-                    :class="[
-                        String(option.value) === String(modelValue)
-                            ? 'bg-lagoon-50 text-lagoon-800'
-                            : 'text-gray-700 hover:bg-gray-50',
-                        index === activeIndex ? 'bg-lagoon-50' : '',
-                    ]"
-                    @click="select(option.value)"
-                    @mouseenter="activeIndex = index"
+                <div v-if="searchable" class="border-b border-line px-3 py-2">
+                    <input
+                        ref="searchInput"
+                        v-model="query"
+                        type="search"
+                        class="w-full rounded-xl border border-line bg-paper px-3 py-2 text-sm text-ink outline-none placeholder:text-ink-soft/60 focus:border-lagoon-700 focus:ring-2 focus:ring-lagoon-100"
+                        :placeholder="searchPlaceholder"
+                        autocomplete="off"
+                        @keydown="onListKeydown"
+                    >
+                </div>
+                <ul
+                    :id="listId"
+                    class="max-h-60 overflow-auto py-2"
+                    role="listbox"
+                    :aria-labelledby="buttonId"
+                    @keydown="onListKeydown"
                 >
-                    {{ option.label }}
-                </li>
-            </ul>
+                    <li
+                        v-if="filteredOptions.length === 0"
+                        class="px-4 py-2.5 text-sm text-ink-soft"
+                    >
+                        No matches
+                    </li>
+                    <li
+                        v-for="(option, index) in filteredOptions"
+                        :key="String(option.value)"
+                        role="option"
+                        :aria-selected="String(option.value) === String(modelValue)"
+                        class="cursor-pointer px-4 py-2.5 text-sm font-medium leading-snug break-words whitespace-normal transition-colors duration-200 ease-out"
+                        :class="[
+                            String(option.value) === String(modelValue)
+                                ? 'bg-lagoon-50 text-lagoon-800'
+                                : 'text-gray-700 hover:bg-gray-50',
+                            index === activeIndex ? 'bg-lagoon-50' : '',
+                        ]"
+                        @click="select(option.value)"
+                        @mouseenter="activeIndex = index"
+                    >
+                        {{ option.label }}
+                    </li>
+                </ul>
+            </div>
         </Transition>
 
         <p v-if="hint && !error" class="mt-2 text-sm leading-relaxed text-ink-soft">{{ hint }}</p>
@@ -89,17 +110,21 @@ const props = withDefaults(defineProps<{
     options: OptionInput[] | Record<string, string>;
     label?: string;
     placeholder?: string;
+    searchPlaceholder?: string;
     optional?: boolean;
     hint?: string;
     error?: string;
     disabled?: boolean;
     compact?: boolean;
+    searchable?: boolean;
     id?: string;
 }>(), {
     placeholder: 'Select…',
+    searchPlaceholder: 'Type to filter…',
     optional: false,
     disabled: false,
     compact: false,
+    searchable: false,
 });
 
 const emit = defineEmits<{
@@ -110,7 +135,9 @@ const uid = useId();
 const buttonId = computed(() => props.id ?? `${uid}-button`);
 const listId = computed(() => `${uid}-list`);
 const root = ref<HTMLElement | null>(null);
+const searchInput = ref<HTMLInputElement | null>(null);
 const open = ref(false);
+const query = ref('');
 const activeIndex = ref(0);
 
 const normalizedOptions = computed(() => {
@@ -127,6 +154,19 @@ const normalizedOptions = computed(() => {
     return Object.entries(props.options).map(([value, label]) => ({ value, label }));
 });
 
+const filteredOptions = computed(() => {
+    if (! props.searchable) {
+        return normalizedOptions.value;
+    }
+
+    const needle = query.value.trim().toLowerCase();
+    if (needle === '') {
+        return normalizedOptions.value;
+    }
+
+    return normalizedOptions.value.filter((option) => option.label.toLowerCase().includes(needle));
+});
+
 const selectedLabel = computed(() => {
     const match = normalizedOptions.value.find((option) => String(option.value) === String(props.modelValue));
 
@@ -134,13 +174,19 @@ const selectedLabel = computed(() => {
 });
 
 watch(open, async (isOpen) => {
-    if (!isOpen) {
+    if (! isOpen) {
+        query.value = '';
+
         return;
     }
 
-    const index = normalizedOptions.value.findIndex((option) => String(option.value) === String(props.modelValue));
+    const index = filteredOptions.value.findIndex((option) => String(option.value) === String(props.modelValue));
     activeIndex.value = index >= 0 ? index : 0;
     await nextTick();
+
+    if (props.searchable) {
+        searchInput.value?.focus();
+    }
 });
 
 function toggle(): void {
@@ -161,7 +207,7 @@ function select(value: string | number): void {
 }
 
 function move(delta: number): void {
-    const total = normalizedOptions.value.length;
+    const total = filteredOptions.value.length;
     if (total === 0) {
         return;
     }
@@ -170,7 +216,7 @@ function move(delta: number): void {
 }
 
 function chooseActive(): void {
-    const option = normalizedOptions.value[activeIndex.value];
+    const option = filteredOptions.value[activeIndex.value];
     if (option) {
         select(option.value);
     }

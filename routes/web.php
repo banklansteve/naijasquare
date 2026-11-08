@@ -3,19 +3,26 @@
 use App\Http\Controllers\AdminInvitationController;
 use App\Http\Controllers\AdminSearchController;
 use App\Http\Controllers\CommunityController;
+use App\Http\Controllers\CommunityPinController;
 use App\Http\Controllers\CommunityPostController;
+use App\Http\Controllers\CommunityReportController;
 use App\Http\Controllers\CommunitySettingsController;
 use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\ExploreController;
 use App\Http\Controllers\GuideController;
+use App\Http\Controllers\HelpWithController;
+use App\Http\Controllers\HomeChecklistController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\InviteShareController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\LogoutController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\PostReplyController;
 use App\Http\Controllers\ProfileAvatarController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RelatedOffersController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SignupController;
 use App\Http\Controllers\SitemapController;
@@ -54,10 +61,23 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware('verified.email')->group(function () {
         Route::get('/home', HomeController::class)->name('home');
+        Route::put('/profile/help-with', [HelpWithController::class, 'update'])
+            ->middleware('throttle:30,1')
+            ->name('profile.help-with');
+        Route::post('/home/checklist/dismiss', [HomeChecklistController::class, 'dismiss'])
+            ->middleware('throttle:20,1')
+            ->name('home.checklist.dismiss');
+        Route::get('/invite/share', InviteShareController::class)
+            ->middleware('throttle:invite-share')
+            ->name('invite.share');
         Route::get('/needs', [GuideController::class, 'needs'])->name('needs');
         Route::get('/resources', [GuideController::class, 'resources'])->name('resources');
         Route::get('/profile', ProfileController::class)->name('profile');
         Route::get('/profile/avatar', ProfileAvatarController::class)->name('profile.avatar');
+        Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+        Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead'])
+            ->middleware('throttle:60,1')
+            ->name('notifications.read');
         Route::get('/join/communities', [SuggestedCommunitiesController::class, 'create'])->name('signup.communities');
         Route::post('/join/communities', [SuggestedCommunitiesController::class, 'store'])->name('signup.communities.join');
 
@@ -66,11 +86,23 @@ Route::middleware('auth')->group(function () {
         Route::post('/communities', [CommunityController::class, 'store'])->middleware('throttle:community-create')->name('communities.store');
         Route::post('/communities/{community}/join', [CommunityController::class, 'join'])->middleware('throttle:community-join')->name('communities.join');
         Route::post('/communities/{community}/accept-guidelines', [CommunityController::class, 'acceptGuidelines'])->name('communities.accept-guidelines');
+        Route::post('/communities/{community}/pin', [CommunityPinController::class, 'update'])
+            ->middleware('throttle:community-pin')
+            ->name('communities.pin');
 
         Route::get('/communities/{community}/posts/create', [CommunityPostController::class, 'create'])->name('communities.posts.create');
         Route::post('/communities/{community}/posts', [CommunityPostController::class, 'store'])->middleware('throttle:60,1')->name('communities.posts.store');
+        Route::get('/communities/{community}/related-offers', RelatedOffersController::class)
+            ->middleware('throttle:60,1')
+            ->name('communities.related-offers');
         Route::get('/communities/{community}/posts/{post}', [CommunityPostController::class, 'show'])->name('communities.posts.show');
         Route::post('/communities/{community}/posts/{post}/replies', [PostReplyController::class, 'store'])->middleware('throttle:60,1')->name('communities.posts.replies.store');
+        Route::post('/communities/{community}/posts/{post}/replies/{reply}/helped', [PostReplyController::class, 'markHelped'])
+            ->middleware('throttle:60,1')
+            ->name('communities.posts.replies.helped');
+        Route::delete('/communities/{community}/posts/{post}/replies/{reply}/helped', [PostReplyController::class, 'unmarkHelped'])
+            ->middleware('throttle:60,1')
+            ->name('communities.posts.replies.helped.destroy');
         Route::post('/communities/{community}/posts/{post}/resolve', [CommunityPostController::class, 'resolve'])->name('communities.posts.resolve');
         Route::post('/reports', [ReportController::class, 'store'])->middleware('throttle:20,1')->name('reports.store');
 
@@ -85,6 +117,12 @@ Route::middleware('auth')->group(function () {
         Route::delete('/communities/{community}/settings/admins/{user}', [CommunitySettingsController::class, 'removeModerator'])->name('communities.settings.admins.remove');
         Route::post('/communities/{community}/settings/join-requests/{joinRequest}/approve', [CommunitySettingsController::class, 'approveJoinRequest'])->name('communities.settings.join-requests.approve');
         Route::post('/communities/{community}/settings/join-requests/{joinRequest}/decline', [CommunitySettingsController::class, 'declineJoinRequest'])->name('communities.settings.join-requests.decline');
+        Route::post('/communities/{community}/settings/reports/{report}/dismiss', [CommunityReportController::class, 'dismiss'])
+            ->middleware('throttle:30,1')
+            ->name('communities.settings.reports.dismiss');
+        Route::post('/communities/{community}/settings/reports/{report}/remove', [CommunityReportController::class, 'remove'])
+            ->middleware('throttle:30,1')
+            ->name('communities.settings.reports.remove');
         Route::delete('/communities/{community}/settings/members/{user}', [CommunitySettingsController::class, 'removeMember'])->name('communities.settings.members.remove');
         Route::post('/communities/{community}/settings/transfer', [CommunitySettingsController::class, 'transfer'])->name('communities.settings.transfer');
         Route::delete('/communities/{community}', [CommunitySettingsController::class, 'destroy'])->name('communities.destroy');

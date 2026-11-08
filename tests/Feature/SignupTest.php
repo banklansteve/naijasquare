@@ -64,7 +64,7 @@ class SignupTest extends TestCase
                 ->component('Home')
                 ->where('firstName', 'Ada')
                 ->where('city', 'Sunderland')
-                ->has('communities', 0)
+                ->has('nearCommunities', 0)
                 ->missing('place')
                 ->missing('address_line')
                 ->missing('house_number')
@@ -481,10 +481,11 @@ class SignupTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Home')
                 ->where('city', 'Sunderland')
-                ->has('communities', 1)
-                ->where('communities.0.name', 'Nigerians in Sunderland')
-                ->where('communities.0.description', 'Practical help around the city.')
-                ->where('communities.0.members', 1)
+                ->has('nearCommunities', 1)
+                ->where('nearCommunities.0.name', 'Nigerians in Sunderland')
+                ->where('nearCommunities.0.description', 'Practical help around the city.')
+                ->where('nearCommunities.0.members', 1)
+                ->where('nearCommunitiesEmpty', false)
                 ->missing('address_line')
             );
 
@@ -515,7 +516,8 @@ class SignupTest extends TestCase
         $this->actingAs($member)->get('/home')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->has('communities', 0)
+                ->has('nearCommunities', 0)
+                ->where('nearCommunitiesEmpty', true)
             );
     }
 

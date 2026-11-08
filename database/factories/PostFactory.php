@@ -26,7 +26,9 @@ class PostFactory extends Factory
             'title' => 'Looking for a room near the centre',
             'body' => 'Working full-time, quiet, and looking for something from next month.',
             'category_key' => 'housing',
+            'category_keys' => ['housing'],
             'location_label' => 'Sunderland',
+            'location_labels' => ['Sunderland'],
             'urgency' => 'normal',
             'expires_at' => now()->addDays(14),
             'resolved_at' => null,
@@ -40,6 +42,38 @@ class PostFactory extends Factory
             'title' => 'I can help with GP registration',
             'body' => 'Happy to walk someone through registering with a GP nearby.',
             'category_key' => 'healthcare',
+            'category_keys' => ['healthcare'],
+            'urgency' => 'normal',
+        ]);
+    }
+
+    /**
+     * @param  list<string>  $keys
+     */
+    public function categories(array $keys): static
+    {
+        return $this->state(fn (): array => [
+            'category_key' => $keys[0] ?? 'everyday',
+            'category_keys' => array_values($keys),
+        ]);
+    }
+
+    /**
+     * @param  list<string>  $labels
+     */
+    public function locations(array $labels): static
+    {
+        return $this->state(fn (): array => [
+            'location_label' => $labels[0] ?? null,
+            'location_labels' => array_values($labels),
+        ]);
+    }
+
+    public function anywhere(): static
+    {
+        return $this->state(fn (): array => [
+            'location_label' => null,
+            'location_labels' => [],
         ]);
     }
 
