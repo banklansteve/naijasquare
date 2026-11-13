@@ -14,6 +14,7 @@ use App\Models\CommunityJoinRequest;
 use App\Models\Post;
 use App\Models\User;
 use App\Signup\CommunitySuggestions;
+use App\Support\HumanTime;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Http\RedirectResponse;
@@ -217,6 +218,7 @@ class CommunityController extends Controller
                     'replies_count' => (int) $post->replies_count,
                     'author_name' => $post->author->name,
                     'created_at' => $post->created_at?->toIso8601String(),
+                    'created_at_human' => HumanTime::format($post->created_at),
                 ])
             : collect();
 

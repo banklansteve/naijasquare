@@ -1,10 +1,10 @@
 <template>
     <section
-        class="w-full max-w-full min-w-0"
+        class="w-full max-w-full min-w-0 rounded-[1.35rem] border border-line/80 bg-white p-4 shadow-card sm:p-5"
         :aria-labelledby="headingId"
     >
-        <div class="flex min-w-0 flex-wrap items-end justify-between gap-2">
-            <h2 :id="headingId" class="min-w-0 font-heading text-lg font-bold tracking-tight text-ink sm:text-xl">
+        <div class="flex min-w-0 flex-wrap items-end justify-between gap-2 px-0.5">
+            <h2 :id="headingId" class="min-w-0 font-heading text-lg font-bold tracking-tight text-ink">
                 {{ title }}
             </h2>
             <Link
@@ -19,12 +19,12 @@
 
         <ul
             v-if="visibleCommunities.length"
-            class="mt-4 space-y-2.5"
+            class="mt-4 space-y-2"
         >
             <li
                 v-for="community in visibleCommunities"
                 :key="community.id"
-                class="flex min-w-0 items-center gap-3 rounded-[1.15rem] border border-line/90 bg-white p-3.5 shadow-card"
+                class="flex min-w-0 items-center gap-3 rounded-[1.15rem] border border-line/70 bg-paper/60 p-3 transition hover:border-lagoon-200 hover:bg-lagoon-50/40"
             >
                 <HomeMonogram
                     v-if="community.monogram"
@@ -65,7 +65,7 @@
                     class="inline-flex size-9 shrink-0 items-center justify-center rounded-full transition"
                     :class="community.pinned
                         ? 'bg-lagoon-100 text-lagoon-800'
-                        : 'text-ink-soft hover:bg-lagoon-50 hover:text-lagoon-800'"
+                        : 'text-ink-soft hover:bg-white hover:text-lagoon-800'"
                     :aria-label="community.pinned ? 'Unpin community' : 'Pin community'"
                     :disabled="pinningId === community.id"
                     @click="togglePin(community)"
@@ -77,7 +77,7 @@
 
         <div
             v-else-if="emptyMessage"
-            class="mt-4 flex flex-col items-center justify-center rounded-[1.15rem] border border-dashed border-line bg-white px-5 py-7 text-center shadow-card"
+            class="mt-4 flex flex-col items-center justify-center rounded-[1.15rem] border border-dashed border-line bg-paper/50 px-5 py-7 text-center"
         >
             <p class="text-sm leading-6 text-ink-soft">{{ emptyMessage }}</p>
             <Link

@@ -170,6 +170,27 @@ work and must not contradict it. To change a decision, add a NEW entry that supe
 - Decision: Authors cannot reply on their own Need or Offer (UI + server). Safety notices hide for the author. Need/Offer show has a back control to the community and relative timestamps (`created_at_human`, e.g. “2 hours ago” / “Yesterday”). On **Needs only**, the Need author may mark one or more replies “This helped” (`helped_at`); helped replies sort above others with a calm badge. No public upvote scores. Offer reply “helped” stays out.
 - Consequences: Aligns with D-006 “helped me” signals without crowd ranking. Full trust badge surface remains D-039 step 10.
 
+## D-044: Premium polish — Home, Communities index, community detail
+- Status: Accepted
+- Date: 2026-11-13
+- Context: Member landing and community surfaces needed a calmer, more premium visual standard without becoming a social feed.
+- Decision: Keep D-038 information architecture (60/40 Home utility + rail). Rebuild visual system: refined Need/Offer cards (accent rail, quieter meta, relative time), streamlined help-with (8 primary categories + More), polished community cards and section hierarchy on `/communities`, and a quieter community detail hero with clearer Ask/Offer doors. Standalone help-with prompt shows when first-week is done/dismissed and the member has no help categories yet. Post hero collapses when the member already has open posts.
+- Consequences: Visual-only relative to product behaviour except help-with progressive disclosure. No engagement ranking or vanity metrics.
+
+## D-045: Home density + template Need details assist
+- Status: Accepted
+- Date: 2026-11-13
+- Context: Empty Home sections still took space; a long helpable list pushed belonging surfaces down on mobile; Need authors often leave Details blank. Paid LLM APIs are out of MVP budget; “free” hosted LLM tiers still mean rate limits, keys, and privacy review for diaspora content.
+- Decision: Collapse empty Home sections (hide “Communities you run” when empty; show “Your communities” empty only when the member has no memberships at all). On mobile, belonging/rail surfaces render above helpable Needs. Helpable preview stays 3 with expand up to 6. Need create offers optional **on-server template** details (`SuggestNeedDetails` — no third-party LLM, no paid API path). Category sits above Details; after title (≥5 chars) + category, a premium assist panel drafts starter text (Use / Write my own). Never auto-filled into the field. Body already filled or dismissed → assist stays away.
+- Consequences: Later LLM assist would be a new decision (provider, cost, privacy, rate limits). Templates stay category-aware and include immigration “not legal advice” language.
+
+## D-046: Own Profile & Settings (no public member profiles)
+- Status: Accepted
+- Date: 2026-11-13
+- Context: `/profile` was a stub; members needed a calm control centre for identity, help-with, security, privacy, and deletion without inventing a social profile surface.
+- Decision: Own-only `/profile` with three tabs in order **Profile → Privacy → Account**. Mobile equal-width tabs; desktop side nav. **Profile:** photo; one Edit for about (first/last name, bio, phone, postcode — city/area are derived via premise lookup from saved house number + new postcode, never free-typed); separate section for how area is shown (`place` | `city` | `hidden`); help-with. **Privacy:** profile/help visibility, location shown, notification toggles, optional product emails. **Account:** separate sections for email (Edit), password (Change), delete account. Success feedback via bottom toast. Soft-delete → “Former member”. No public member directory / member 2FA.
+- Consequences: Supersedes earlier “notification prefs deferred” note for these three toggles (still not email digests). Visibility flags are ready for community surfaces; no public profile page.
+
 ## D-017: Three-layer access model
 - Status: Accepted
 - Date: 2026-10-26

@@ -17,11 +17,13 @@ use App\Http\Controllers\InviteShareController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\LogoutController;
+use App\Http\Controllers\NeedDetailsSuggestionController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\PostReplyController;
 use App\Http\Controllers\ProfileAvatarController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProfileSettingsController;
 use App\Http\Controllers\RelatedOffersController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SignupController;
@@ -74,6 +76,36 @@ Route::middleware('auth')->group(function () {
         Route::get('/resources', [GuideController::class, 'resources'])->name('resources');
         Route::get('/profile', ProfileController::class)->name('profile');
         Route::get('/profile/avatar', ProfileAvatarController::class)->name('profile.avatar');
+        Route::put('/profile', [ProfileSettingsController::class, 'updateProfile'])
+            ->middleware('throttle:30,1')
+            ->name('profile.update');
+        Route::put('/profile/privacy', [ProfileSettingsController::class, 'updatePrivacy'])
+            ->middleware('throttle:30,1')
+            ->name('profile.privacy');
+        Route::put('/profile/location-display', [ProfileSettingsController::class, 'updateLocationDisplay'])
+            ->middleware('throttle:30,1')
+            ->name('profile.location-display');
+        Route::put('/profile/password', [ProfileSettingsController::class, 'updatePassword'])
+            ->middleware('throttle:10,1')
+            ->name('profile.password');
+        Route::post('/profile/password/confirm', [ProfileSettingsController::class, 'confirmPassword'])
+            ->middleware('throttle:30,1')
+            ->name('profile.password.confirm');
+        Route::put('/profile/email', [ProfileSettingsController::class, 'updateEmail'])
+            ->middleware('throttle:5,1')
+            ->name('profile.email');
+        Route::put('/profile/phone', [ProfileSettingsController::class, 'updatePhone'])
+            ->middleware('throttle:20,1')
+            ->name('profile.phone');
+        Route::post('/profile/photo', [ProfileSettingsController::class, 'updatePhoto'])
+            ->middleware('throttle:20,1')
+            ->name('profile.photo');
+        Route::delete('/profile/photo', [ProfileSettingsController::class, 'destroyPhoto'])
+            ->middleware('throttle:20,1')
+            ->name('profile.photo.destroy');
+        Route::delete('/profile', [ProfileSettingsController::class, 'destroy'])
+            ->middleware('throttle:5,1')
+            ->name('profile.destroy');
         Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
         Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead'])
             ->middleware('throttle:60,1')
@@ -95,6 +127,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/communities/{community}/related-offers', RelatedOffersController::class)
             ->middleware('throttle:60,1')
             ->name('communities.related-offers');
+        Route::post('/communities/{community}/posts/need-details-suggestion', NeedDetailsSuggestionController::class)
+            ->middleware('throttle:20,1')
+            ->name('communities.posts.need-details-suggestion');
         Route::get('/communities/{community}/posts/{post}', [CommunityPostController::class, 'show'])->name('communities.posts.show');
         Route::post('/communities/{community}/posts/{post}/replies', [PostReplyController::class, 'store'])->middleware('throttle:60,1')->name('communities.posts.replies.store');
         Route::post('/communities/{community}/posts/{post}/replies/{reply}/helped', [PostReplyController::class, 'markHelped'])

@@ -8,6 +8,7 @@ use App\Models\Post;
 use App\Models\PostReply;
 use App\Models\User;
 use App\Signup\CommunitySuggestions;
+use App\Support\HumanTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -397,6 +398,7 @@ class BuildHomePage
             },
             'replies_count' => (int) $post->replies_count,
             'created_at' => $post->created_at?->toIso8601String(),
+            'created_at_human' => HumanTime::format($post->created_at),
             'href' => '/communities/'.$post->community->slug.'/posts/'.$post->id,
             'community' => [
                 'slug' => $post->community->slug,

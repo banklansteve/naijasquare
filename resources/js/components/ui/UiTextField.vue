@@ -22,6 +22,7 @@
                     : 'border-line focus:border-lagoon-700 focus:ring-4 focus:ring-lagoon-100',
             ]"
             @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
+            @focusout="$emit('focusout', $event)"
         >
         <p v-if="hint && !error" class="mt-2 text-sm leading-relaxed text-ink-soft">{{ hint }}</p>
         <p v-if="error" class="mt-2 text-sm text-clay-800">{{ error }}</p>
@@ -54,6 +55,7 @@ const props = withDefaults(defineProps<{
 
 defineEmits<{
     'update:modelValue': [value: string];
+    focusout: [event: FocusEvent];
 }>();
 
 const uid = useId();

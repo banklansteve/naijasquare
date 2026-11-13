@@ -59,11 +59,14 @@
                                 class="mt-3"
                             >
                                 <template v-if="step.kind === 'help_with'">
-                                    <div class="flex flex-wrap gap-2">
+                                    <p class="text-xs leading-5 text-lagoon-800/80">
+                                        Pick a few — this quietly matches you to Needs you can actually help with.
+                                    </p>
+                                    <div class="mt-2.5 flex flex-wrap gap-2">
                                         <label
-                                            v-for="option in helpWith.options"
+                                            v-for="option in visibleOptions"
                                             :key="option.key"
-                                            class="inline-flex cursor-pointer items-center rounded-full border px-3 py-1.5 text-xs transition"
+                                            class="inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition"
                                             :class="selected.includes(option.key)
                                                 ? 'border-lagoon-700 bg-lagoon-100 font-semibold text-lagoon-900'
                                                 : 'border-line bg-white text-ink-soft hover:border-lagoon-300'"
@@ -74,8 +77,22 @@
                                                 class="sr-only"
                                                 :value="option.key"
                                             >
+                                            <BaseIcon
+                                                v-if="selected.includes(option.key)"
+                                                name="check"
+                                                bold
+                                                class="size-3"
+                                            />
                                             {{ option.label }}
                                         </label>
+                                        <button
+                                            v-if="hasMoreOptions"
+                                            type="button"
+                                            class="inline-flex items-center gap-1 rounded-full border border-dashed border-lagoon-300 bg-white px-3 py-1.5 text-xs font-semibold text-lagoon-800 transition hover:border-lagoon-400"
+                                            @click="showAllOptions = !showAllOptions"
+                                        >
+                                            {{ showAllOptions ? 'Show fewer' : `More (${hiddenOptionCount})` }}
+                                        </button>
                                     </div>
                                     <div class="mt-3 flex flex-col gap-2 sm:flex-row">
                                         <input
@@ -117,9 +134,10 @@
 
 <script setup lang="ts">
 import { Link, router, useForm } from '@inertiajs/vue3';
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 import BaseIcon from '@/components/BaseIcon.vue';
+import { primaryHelpOptions } from '@/lib/helpCategories';
 
 const props = defineProps<{
     firstWeek: {
@@ -145,6 +163,12 @@ const props = defineProps<{
 
 const selected = ref<string[]>([...props.helpWith.category_keys]);
 const dismissing = ref(false);
+const showAllOptions = ref(false);
+
+const curatedOptions = computed(() => primaryHelpOptions(props.helpWith.options, selected.value));
+const hiddenOptionCount = computed(() => props.helpWith.options.length - curatedOptions.value.length);
+const hasMoreOptions = computed(() => hiddenOptionCount.value > 0);
+const visibleOptions = computed(() => (showAllOptions.value ? props.helpWith.options : curatedOptions.value));
 
 const form = useForm({
     help_category_keys: [...props.helpWith.category_keys] as string[],

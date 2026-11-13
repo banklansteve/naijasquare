@@ -11,7 +11,7 @@
             </p>
 
             <div class="grid min-w-0 gap-8 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:items-start lg:gap-10 xl:gap-12">
-                <div class="min-w-0 space-y-7 sm:space-y-8">
+                <div class="min-w-0 space-y-8 sm:space-y-9">
                     <HomeGreeting
                         :greeting="greeting"
                         :first-name="firstName"
@@ -26,6 +26,7 @@
                     />
 
                     <HomePostHero
+                        v-if="!myPosts.length"
                         :ask-href="askHref"
                         :offer-href="offerHref"
                     />
@@ -36,14 +37,15 @@
                         list-href="/communities"
                     />
 
-                    <HomeHelpableNeeds
-                        v-if="showHelpableSection"
-                        :posts="helpableNeeds"
-                        :category-filter="categoryFilter"
-                        :category-filters="categoryFilters"
+                    <HomeHelpWithPrompt
+                        v-if="showStandaloneHelpWith"
+                        :options="helpWith.options"
+                        :category-keys="helpWith.category_keys"
+                        :note="helpWith.note"
                     />
 
-                    <div class="space-y-7 lg:hidden">
+                    <!-- Mobile: belonging surfaces before a long helpable list -->
+                    <div class="space-y-6 lg:hidden">
                         <HomeMembershipCommunities
                             v-if="administeredCommunities.length"
                             title="Communities you run"
@@ -55,6 +57,7 @@
                         <HomeBringPeople :invite="invite" />
 
                         <HomeMembershipCommunities
+                            v-if="yourCommunities.length || showYourCommunitiesEmpty"
                             title="Your communities"
                             heading-id="your-communities-mobile"
                             :communities="yourCommunities"
@@ -70,9 +73,16 @@
                             :empty="nearCommunitiesEmpty"
                         />
                     </div>
+
+                    <HomeHelpableNeeds
+                        v-if="showHelpableSection"
+                        :posts="helpableNeeds"
+                        :category-filter="categoryFilter"
+                        :category-filters="categoryFilters"
+                    />
                 </div>
 
-                <aside class="hidden min-w-0 space-y-7 lg:sticky lg:top-24 lg:block">
+                <aside class="hidden min-w-0 space-y-6 lg:sticky lg:top-24 lg:block">
                     <HomeMembershipCommunities
                         v-if="administeredCommunities.length"
                         title="Communities you run"
@@ -84,6 +94,7 @@
                     <HomeBringPeople :invite="invite" />
 
                     <HomeMembershipCommunities
+                        v-if="yourCommunities.length || showYourCommunitiesEmpty"
                         title="Your communities"
                         heading-id="your-communities"
                         :communities="yourCommunities"
@@ -113,6 +124,7 @@ import HomeBringPeople from '@/components/home/HomeBringPeople.vue';
 import HomeFirstWeek from '@/components/home/HomeFirstWeek.vue';
 import HomeGreeting from '@/components/home/HomeGreeting.vue';
 import HomeHelpableNeeds from '@/components/home/HomeHelpableNeeds.vue';
+import HomeHelpWithPrompt from '@/components/home/HomeHelpWithPrompt.vue';
 import HomeMembershipCommunities, { type MembershipCommunityCard } from '@/components/home/HomeMembershipCommunities.vue';
 import HomeMyPosts from '@/components/home/HomeMyPosts.vue';
 import HomeNearCommunities from '@/components/home/HomeNearCommunities.vue';
@@ -177,6 +189,14 @@ const flashStatus = computed(() => {
 
 const showHelpableSection = computed(() => {
     return props.helpableNeeds.length > 0 || props.categoryFilter !== null;
+});
+
+const showStandaloneHelpWith = computed(() => {
+    if (props.firstWeek !== null) {
+        return false;
+    }
+
+    return props.helpWith.category_keys.length === 0;
 });
 
 const showYourCommunitiesEmpty = computed(() => {

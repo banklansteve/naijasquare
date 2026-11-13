@@ -1,17 +1,20 @@
 <template>
     <section
-        class="relative w-full max-w-full overflow-hidden rounded-[1.35rem] border border-line/90 bg-white shadow-card"
+        class="relative w-full max-w-full overflow-hidden rounded-[1.5rem] border border-lagoon-200/70 bg-linear-to-br from-lagoon-50 via-white to-white shadow-card"
         aria-labelledby="post-hero"
     >
         <div class="grid min-w-0 gap-5 p-5 sm:grid-cols-[1fr_auto] sm:items-center sm:gap-8 sm:p-7">
             <div class="min-w-0">
-                <h2 id="post-hero" class="font-heading text-xl font-bold tracking-tight text-ink sm:text-2xl">
+                <p class="text-xs font-semibold tracking-[0.14em] text-lagoon-700 uppercase">
+                    Practical help
+                </p>
+                <h2 id="post-hero" class="mt-2 font-heading text-xl font-bold tracking-tight text-ink sm:text-2xl">
                     Need a hand — or lending one?
                 </h2>
                 <p class="mt-2 max-w-md text-sm leading-6 text-ink-soft">
-                    Post a Need when something’s stuck. Post an Offer when you can help someone nearby.
+                    Post a Need when something’s stuck. Post an Offer when you can help someone in your communities.
                 </p>
-                <div class="mt-5 flex flex-wrap gap-2.5">
+                <div class="mt-5 flex flex-col gap-2.5 sm:flex-row sm:flex-wrap">
                     <Link
                         :href="askHref"
                         class="inline-flex h-11 items-center justify-center rounded-full bg-lagoon-800 px-5 font-heading text-sm font-semibold text-white transition hover:bg-lagoon-900"
@@ -20,7 +23,7 @@
                     </Link>
                     <Link
                         :href="offerHref"
-                        class="inline-flex h-11 items-center justify-center rounded-full border border-line bg-paper px-5 font-heading text-sm font-semibold text-ink transition hover:border-lagoon-300 hover:bg-lagoon-50"
+                        class="inline-flex h-11 items-center justify-center rounded-full border border-line bg-white px-5 font-heading text-sm font-semibold text-ink transition hover:border-lagoon-300 hover:bg-lagoon-50"
                     >
                         Post an Offer
                     </Link>

@@ -60,7 +60,7 @@ class InviteCommunityAdmin
 
         Mail::to($email)->send(new CommunityAdminInvite($invitation));
 
-        if ($invitee !== null) {
+        if ($invitee !== null && $invitee->wantsNotification('community_admin_invite')) {
             AppNotification::query()->create([
                 'user_id' => $invitee->id,
                 'type' => 'community_admin_invite',

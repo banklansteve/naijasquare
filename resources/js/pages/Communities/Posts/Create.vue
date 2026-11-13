@@ -81,28 +81,6 @@
                             </p>
                         </div>
 
-                        <div>
-                            <UiTextarea
-                                v-model="form.body"
-                                label="Details"
-                                name="body"
-                                :rows="3"
-                                autoresize
-                                :error="form.errors.body"
-                                :placeholder="detailsPlaceholder"
-                            />
-                            <ul class="mt-3 space-y-1.5 text-sm leading-6 text-ink-soft">
-                                <li
-                                    v-for="tip in detailTips"
-                                    :key="tip"
-                                    class="flex gap-2"
-                                >
-                                    <span class="mt-2 size-1.5 shrink-0 rounded-full bg-lagoon-400" aria-hidden="true" />
-                                    <span>{{ tip }}</span>
-                                </li>
-                            </ul>
-                        </div>
-
                         <UiSelect
                             v-if="!isOffer"
                             v-model="form.category_key"
@@ -112,7 +90,7 @@
                             :error="form.errors.category_key"
                             placeholder="Choose one category"
                             search-placeholder="Search categories…"
-                            hint="Pick the main area this Need is about."
+                            hint="Pick the main area this Need is about — we use it to draft details."
                         />
 
                         <UiMultiSelect
@@ -126,6 +104,41 @@
                             search-placeholder="Search categories…"
                             hint="Choose the kinds of help you can give."
                         />
+
+                        <NeedDetailsAssist
+                            v-if="!isOffer && showDetailsAssistPanel"
+                            :loading="suggestionLoading || suggestionPending"
+                            :visible="suggestionVisible"
+                            :text="suggestionText"
+                            @use="useSuggestion"
+                            @dismiss="dismissSuggestion"
+                        />
+
+                        <div>
+                            <UiTextarea
+                                v-model="form.body"
+                                label="Details"
+                                name="body"
+                                :rows="3"
+                                autoresize
+                                :error="form.errors.body"
+                                :placeholder="detailsPlaceholder"
+                            />
+
+                            <ul
+                                v-if="isOffer || (! suggestionVisible && ! suggestionLoading)"
+                                class="mt-3 space-y-1.5 text-sm leading-6 text-ink-soft"
+                            >
+                                <li
+                                    v-for="tip in detailTips"
+                                    :key="tip"
+                                    class="flex gap-2"
+                                >
+                                    <span class="mt-2 size-1.5 shrink-0 rounded-full bg-lagoon-400" aria-hidden="true" />
+                                    <span>{{ tip }}</span>
+                                </li>
+                            </ul>
+                        </div>
 
                         <fieldset v-if="!isOffer">
                             <legend class="text-sm font-semibold text-ink">Urgency</legend>
@@ -320,6 +333,7 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import AppNav from '@/components/AppNav.vue';
 import BaseIcon from '@/components/BaseIcon.vue';
 import RelatedOffersPanel, { type RelatedOfferCard } from '@/components/home/RelatedOffersPanel.vue';
+import NeedDetailsAssist from '@/components/posts/NeedDetailsAssist.vue';
 import UiMultiSelect from '@/components/ui/UiMultiSelect.vue';
 import UiSelect from '@/components/ui/UiSelect.vue';
 import UiTextarea from '@/components/ui/UiTextarea.vue';
@@ -374,6 +388,15 @@ const form = useForm({
 const areaOpen = ref(false);
 const liveRelatedOffers = ref<RelatedOfferCard[]>([...(props.relatedOffers ?? [])]);
 let relatedOffersTimer: ReturnType<typeof setTimeout> | null = null;
+
+const suggestionText = ref('');
+const suggestionVisible = ref(false);
+const suggestionLoading = ref(false);
+const suggestionPending = ref(false);
+const suggestionDismissed = ref(false);
+const suggestionUsed = ref(false);
+let suggestionTimer: ReturnType<typeof setTimeout> | null = null;
+let suggestionRequestId = 0;
 
 const isOffer = computed(() => form.type === 'offer');
 
@@ -441,6 +464,40 @@ watch(
     () => [form.type, form.category_key, form.location_label] as const,
     () => {
         scheduleRelatedOffersRefresh();
+    },
+);
+
+watch(
+    () => [form.type, form.title, form.category_key, form.location_label, form.body] as const,
+    () => {
+        if (form.type === 'offer') {
+            clearSuggestionTimer();
+            suggestionDismissed.value = false;
+            suggestionUsed.value = false;
+            resetSuggestionState();
+
+            return;
+        }
+
+        if (form.body.trim() !== '') {
+            clearSuggestionTimer();
+            resetSuggestionState();
+
+            return;
+        }
+
+        if (suggestionDismissed.value || suggestionUsed.value) {
+            return;
+        }
+
+        if (form.title.trim().length < 5 || form.category_key.trim() === '') {
+            clearSuggestionTimer();
+            resetSuggestionState();
+
+            return;
+        }
+
+        scheduleSuggestion();
     },
 );
 
@@ -719,6 +776,128 @@ function onAreaInput(): void {
     areaOpen.value = true;
 }
 
+function csrfToken(): string {
+    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
+}
+
+const showDetailsAssistPanel = computed(() => {
+    if (suggestionDismissed.value || suggestionUsed.value || form.body.trim() !== '') {
+        return false;
+    }
+
+    return suggestionLoading.value
+        || suggestionPending.value
+        || suggestionVisible.value;
+});
+
+function canSuggestDetails(): boolean {
+    return form.type === 'need'
+        && ! suggestionDismissed.value
+        && ! suggestionUsed.value
+        && form.body.trim() === ''
+        && form.title.trim().length >= 5
+        && form.category_key.trim() !== '';
+}
+
+function clearSuggestionTimer(): void {
+    if (suggestionTimer !== null) {
+        clearTimeout(suggestionTimer);
+        suggestionTimer = null;
+    }
+
+    suggestionPending.value = false;
+}
+
+function resetSuggestionState(): void {
+    suggestionVisible.value = false;
+    suggestionText.value = '';
+    suggestionLoading.value = false;
+    suggestionPending.value = false;
+}
+
+async function fetchNeedDetailsSuggestion(): Promise<void> {
+    if (! canSuggestDetails()) {
+        suggestionPending.value = false;
+
+        return;
+    }
+
+    const requestId = ++suggestionRequestId;
+    suggestionPending.value = false;
+    suggestionLoading.value = true;
+    suggestionVisible.value = false;
+
+    try {
+        const response = await fetch(`/communities/${props.community.slug}/posts/need-details-suggestion`, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken(),
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+                title: form.title.trim(),
+                category_key: form.category_key,
+                location_label: form.location_label.trim() || null,
+            }),
+        });
+
+        if (! response.ok || requestId !== suggestionRequestId) {
+            return;
+        }
+
+        const payload = await response.json() as { suggestion?: string };
+        const text = (payload.suggestion ?? '').trim();
+
+        if (text === '' || ! canSuggestDetails() || requestId !== suggestionRequestId) {
+            return;
+        }
+
+        suggestionText.value = text;
+        suggestionVisible.value = true;
+    } catch {
+        // Keep posting frictionless if the suggestion fails.
+    } finally {
+        if (requestId === suggestionRequestId) {
+            suggestionLoading.value = false;
+            suggestionPending.value = false;
+        }
+    }
+}
+
+function scheduleSuggestion(): void {
+    if (suggestionTimer !== null) {
+        clearTimeout(suggestionTimer);
+    }
+
+    suggestionPending.value = true;
+    suggestionVisible.value = false;
+
+    suggestionTimer = setTimeout(() => {
+        suggestionTimer = null;
+        void fetchNeedDetailsSuggestion();
+    }, 450);
+}
+
+function useSuggestion(): void {
+    if (suggestionText.value.trim() === '') {
+        return;
+    }
+
+    form.body = suggestionText.value;
+    suggestionUsed.value = true;
+    clearSuggestionTimer();
+    resetSuggestionState();
+}
+
+function dismissSuggestion(): void {
+    suggestionDismissed.value = true;
+    clearSuggestionTimer();
+    resetSuggestionState();
+}
+
 function pickArea(place: string): void {
     form.location_label = place;
     areaOpen.value = false;
@@ -742,6 +921,8 @@ onUnmounted(() => {
         clearTimeout(relatedOffersTimer);
         relatedOffersTimer = null;
     }
+
+    clearSuggestionTimer();
 });
 
 const previewTitle = computed(() => {

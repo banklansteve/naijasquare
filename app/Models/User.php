@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -27,11 +28,19 @@ use Illuminate\Notifications\Notifiable;
     'address_line',
     'place_label',
     'city',
+    'location_display',
+    'profile_visibility',
     'life_stage',
     'interests',
     'help_category_keys',
     'help_note',
+    'help_visibility',
     'photo_path',
+    'bio',
+    'notify_needs_replies',
+    'notify_community',
+    'notify_admin',
+    'prefer_product_emails',
     'terms_accepted_at',
 ])]
 #[Hidden([
@@ -47,7 +56,17 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, SoftDeletes;
+
+    public const LOCATION_DISPLAY_PLACE = 'place';
+
+    public const LOCATION_DISPLAY_CITY = 'city';
+
+    public const LOCATION_DISPLAY_HIDDEN = 'hidden';
+
+    public const VISIBILITY_COMMUNITIES = 'communities';
+
+    public const VISIBILITY_PRIVATE = 'private';
 
     protected static function booted(): void
     {
@@ -69,8 +88,41 @@ class User extends Authenticatable
             'home_checklist_dismissed_at' => 'datetime',
             'interests' => 'array',
             'help_category_keys' => 'array',
+            'notify_needs_replies' => 'boolean',
+            'notify_community' => 'boolean',
+            'notify_admin' => 'boolean',
+            'prefer_product_emails' => 'boolean',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Coarse location shown to others — never house number or postcode.
+     */
+    public function displayLocation(): ?string
+    {
+        if ($this->location_display === self::LOCATION_DISPLAY_HIDDEN) {
+            return null;
+        }
+
+        if ($this->location_display === self::LOCATION_DISPLAY_CITY) {
+            return filled($this->city) ? (string) $this->city : null;
+        }
+
+        if (filled($this->place_label)) {
+            return (string) $this->place_label;
+        }
+
+        return filled($this->city) ? (string) $this->city : null;
+    }
+
+    public function wantsNotification(string $type): bool
+    {
+        return match ($type) {
+            'related_need' => (bool) $this->notify_needs_replies,
+            'community_admin_invite' => (bool) $this->notify_admin,
+            default => (bool) $this->notify_community,
+        };
     }
 
     /**

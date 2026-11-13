@@ -23,6 +23,10 @@ class NotifyMatchingOfferAuthors
         $created = 0;
 
         foreach ($authors as $author) {
+            if (! $author->wantsNotification(self::TYPE)) {
+                continue;
+            }
+
             $alreadyNotified = AppNotification::query()
                 ->where('user_id', $author->id)
                 ->where('type', self::TYPE)

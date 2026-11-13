@@ -29,4 +29,5 @@ export type IconName =
     | 'bookmark'
     | 'link'
     | 'close-sm'
-    | 'bell';
+    | 'bell'
+    | 'phone';
